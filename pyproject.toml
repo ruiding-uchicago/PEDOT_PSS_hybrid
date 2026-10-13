@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pedot-pss-hybrid"
-version = "0.1.1"
+version = "0.1.2"
 description = "Experiment-input-only PEDOT:PSS conductivity surrogate"
 readme = "README.md"
 license = {text = "MIT"}
@@ -22,6 +22,8 @@ dependencies = [
 [project.optional-dependencies]
 # Only needed by models whose MatBERT residual head has a non-zero weight; not by the v0.1.x model.
 encoder = ["torch==2.8.0", "transformers==4.55.4", "tokenizers==0.21.4"]
+# Needed only for additive_smiles (structure input for additives).
+chem = ["rdkit>=2024.9.1"]
 
 [project.scripts]
 pedot-pss = "pedot_pss.__main__:main"

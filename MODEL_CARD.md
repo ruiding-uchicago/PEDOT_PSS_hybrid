@@ -85,6 +85,9 @@ or private source directory. The encoder receives projected experimental
 text and is frozen. Effective physical parameters do not uniquely identify
 microscopic material properties.
 
+Since v0.1.2, `strict=True` maps the categorical inputs to fixed options and `additive_smiles` lets an additive be given
+by structure (unlisted molecules enter through RDKit descriptors only, as an extrapolation).
+
 The default published output is P. The complete fitted state is distributed
 in GitHub Release v0.1.0; `setup-model` installs it once. No corpus or
 per-point evaluation data is distributed. The frozen MatBERT backbone

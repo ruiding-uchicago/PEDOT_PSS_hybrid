@@ -80,6 +80,36 @@ most 0.05 log10 units (about 12%). Recognised categories, with training-set coun
 In optimization loops, keep the text fields fixed at canonical values and vary the numeric fields, the
 additive doses and `process_stages`.
 
+### Fixed options and additive structures (strict mode, SMILES)
+
+**Strict mode.** `predict(experiment, strict=True)` (also `predict_many` and `normalize`) runs the model's own
+category parser on `polymer_grade`, `deposition_method`, `substrate`, `specimen_geometry`, `measurement_method`
+and the additive names, then replaces each by one canonical wording per option. Synonyms of the same option
+therefore give bitwise-identical predictions, an unrecognised option raises `ValueError` with the allowed
+values, and the result carries `"notes"` listing every rewrite. `pedot_pss.vocabulary()` returns the options
+(46 identified additive chemicals, from DMSO and ethylene glycol to acids, surfactants and polymers). Numbers
+written inside `deposition_method` are not used in strict mode; give such settings in `process_stages` or
+`extra_scalar_features`. Without `strict`, inputs are used as written (v0.1.1 behaviour).
+
+**Additives by structure.** `additive_smiles` is an optional list aligned with `additive_names` (one SMILES or
+`null` per additive; needs RDKit: `pip install '.[chem]'`). The model describes additives by identified chemical
+and by five RDKit descriptors of the identified molecules (molecular weight, Crippen logP, TPSA, H-bond donors and
+acceptors).
+
+- A SMILES of a listed molecule (for example `CS(C)=O`) resolves to that chemical and predicts exactly as its name.
+- A molecule that is not in the training chemistry is added for the prediction with its own descriptors, computed
+  with the same RDKit calls as the bundled table, and the result's `"notes"` say so.
+
+```python
+pedot_pss.predict(dict(experiment, additive_names=["sulfolane"], additive_smiles=["C1CCS(=O)(=O)C1"]))
+```
+
+Unlisted molecules are an extrapolation in descriptor space. In the spin-coating example with 5 vol% additive the
+model ranks them sensibly (polar aprotic sulfolane and DMAc about 230 S/cm, nonpolar o-xylene and hexane about
+80 S/cm; DMSO 533 S/cm; no additive 0.45 S/cm), but the absolute values for nonpolar molecules are too high: the
+literature behind the model is dominated by polar secondary dopants, so "an additive is present" itself raises the
+prediction. Use unlisted-molecule predictions to compare candidates, and confirm with experiments.
+
 `PEDOT_PSS_PREDICT_THREADS` (default 1) sets the threads of the fitted LightGBM and ExtraTrees learners;
 one thread gives bitwise-repeatable predictions.
 
@@ -118,6 +148,8 @@ The package is meant to be called as a black-box tool inside optimization or age
   about 30 s while Python compiles the package); a batch of 19 recipes then takes about 1.5 s. No GPU and no
   PyTorch are needed.
 - **Deterministic:** the same input always returns the same prediction.
+- **Determinism:** pass `strict=True` to map every categorical field to a fixed option (see
+  "Fixed options and additive structures").
 - **Errors:** unknown field names, outcome or provenance fields (DOI, paper IDs, measured conductivity, SD,
   coverage, ...), malformed numbers or units and unsupported process-stage kinds raise `ValueError`/`TypeError`
   with a message naming the offending field. Use `null` or omit a field when a condition is unknown; do not use 0.

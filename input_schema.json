@@ -156,6 +156,19 @@
         ]
       }
     },
+    "additive_smiles": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": "Optional, aligned with additive_names: a single-molecule SMILES per additive or null. A SMILES of a listed molecule resolves to that chemical; an unlisted molecule enters through five RDKit descriptors (needs the [chem] extra). The prediction for an unlisted molecule is an extrapolation."
+    },
     "extra_scalar_features": {
       "type": [
         "array",

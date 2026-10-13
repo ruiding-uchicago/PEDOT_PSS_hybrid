@@ -17,19 +17,37 @@ from ._vendor.clean_inputs import INPUT_FIELDS, INPUT_VERSION, canonicalize
 from ._validation import validate, require_condition, canonical_extra_units
 from ._assets import setup_encoder, setup_model
 from ._encoder import shutdown as close_encoder
+from ._categories import canonical_categories, vocabulary
+from ._chemistry import registered, resolve_additives
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 _DEFAULT_MODEL = Path(__file__).with_name("models") / "model.joblib"
 _MODELS = {}
 _LOAD_LOCK = threading.RLock()
 
 
-def normalize(experiment):
-    """Validate public field names and normalize optional experimental inputs."""
+def _prepare(experiment, strict):
+    """(canonical experiment, unlisted molecules to register, notes) for one input dictionary."""
+    if not isinstance(experiment, Mapping):
+        raise TypeError("An experiment must be a dictionary of experimental conditions")
+    experiment, molecules, notes = resolve_additives(experiment)
+    if strict:
+        tokens = {pattern[2:-2] for pattern, _ in molecules.values()}
+        experiment, more = canonical_categories(experiment, registered_names=tokens)
+        notes = notes + more
     validate(experiment)
     clean = canonicalize(canonical_extra_units(experiment))
     require_condition(clean)
-    return clean
+    return clean, molecules, notes
+
+
+def normalize(experiment, *, strict=False):
+    """Validate public field names and normalize optional experimental inputs.
+
+    strict=True rewrites the categorical fields and listed additive names to their canonical wording
+    (see vocabulary()) and rejects options the model does not recognise.
+    """
+    return _prepare(experiment, strict)[0]
 
 
 @contextmanager
@@ -118,16 +136,23 @@ def load_model(model_path=None):
         return _MODELS[path]
 
 
-def predict_many(experiments, *, model_path=None):
+def predict_many(experiments, *, model_path=None, strict=False):
     """Predict multiple experimental recipes with one loaded model.
 
-    Returns dictionaries containing conductivity_S_cm and
-    log10_conductivity_S_cm. Missing fields become explicit nulls internally.
+    Returns dictionaries containing conductivity_S_cm and log10_conductivity_S_cm, plus "notes" when an
+    input was rewritten (strict mode) or an additive was given by SMILES. Missing fields become explicit
+    nulls internally.
     """
-    clean = [normalize(experiment) for experiment in experiments]
-    if not clean:
+    prepared = [_prepare(experiment, strict) for experiment in experiments]
+    if not prepared:
         return []
-    predictions = np.asarray(load_model(model_path).predict(clean), dtype=float)
+    clean = [item[0] for item in prepared]
+    molecules = {}
+    for item in prepared:
+        molecules.update(item[1])
+    model = load_model(model_path)
+    with registered(molecules):
+        predictions = np.asarray(model.predict(clean), dtype=float)
     if predictions.shape != (len(clean),) or not np.isfinite(predictions).all():
         raise ValueError("The trained model returned invalid predictions")
     result = []
@@ -137,13 +162,16 @@ def predict_many(experiments, *, model_path=None):
             raise ValueError("Prediction is outside the representable positive conductivity range")
         result.append({"conductivity_S_cm": sigma,
                        "log10_conductivity_S_cm": float(log10)})
+    for entry, (_, _, notes) in zip(result, prepared):
+        if notes:
+            entry["notes"] = list(notes)
     return result
 
 
-def predict(experiment, *, model_path=None):
+def predict(experiment, *, model_path=None, strict=False):
     """Predict conductivity from one dictionary of planned experimental inputs."""
-    return predict_many([experiment], model_path=model_path)[0]
+    return predict_many([experiment], model_path=model_path, strict=strict)[0]
 
 
-__all__ = ["predict", "predict_many", "normalize", "load_model", "setup_encoder", "setup_model",
+__all__ = ["predict", "predict_many", "normalize", "vocabulary", "load_model", "setup_encoder", "setup_model",
            "close_encoder", "INPUT_FIELDS", "INPUT_VERSION"]
