@@ -33,17 +33,15 @@ class ReleasedModelTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 predict(dict(self.recipe, **{field: "not-an-input"}))
 
-    def test_text_encoder_runs_in_isolated_torch_only_worker(self):
+    def test_prediction_needs_no_text_encoder(self):
+        # The released model gives its MatBERT residual head combiner weight 0, so the stages that
+        # would need the text encoder are not evaluated: no PyTorch import, no encoder process.
         import sys
         from pedot_pss import _encoder
         recipe = json.loads((REPO / "examples/planned_spin_coating.json").read_text())
         predict(recipe)
-        if _encoder.settings()[0] == "subprocess":
-            self.assertNotIn("torch", sys.modules)
-            workers = _encoder.worker_info()
-            self.assertTrue(workers)
-            self.assertEqual(workers[0]["heavy_modules_loaded"], [])
-            self.assertEqual(workers[0]["torch_threads"], _encoder.settings()[1])
+        self.assertNotIn("torch", sys.modules)
+        self.assertEqual(_encoder.worker_info(), [])
 
     def test_new_spin_coating_recipe_uses_complete_general_path(self):
         recipe = json.loads((REPO / "examples/planned_spin_coating.json").read_text())

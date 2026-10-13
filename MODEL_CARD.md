@@ -76,11 +76,10 @@ Previous retrospective all-data R² around 0.95 and Polybot R² around 0.97 belo
 to a system using additional unavailable information. They are not scores for
 this experiment-only predictor.
 
-The standalone release requires complete fitted `model.joblib` state and the
-author's frozen MatBERT resources. The frozen encoder runs in an isolated
-PyTorch-only subprocess with one CPU thread by default (see README, Text encoder
-runtime); this avoids an OpenMP runtime conflict and makes the encoder output
-independent of the host's core count. It builds features and intermediate
+The standalone release requires the complete fitted `model.joblib` state only.
+Since v0.1.1 prediction does not run the frozen MatBERT encoder: the joint late
+combiner gives the MatBERT head weight 0 and every stage after the last weighted
+one is skipped, which leaves the predictions bitwise identical to v0.1.0. It builds features and intermediate
 predictions internally, requiring no literature corpus, training-row lookup
 or private source directory. The encoder receives projected experimental
 text and is frozen. Effective physical parameters do not uniquely identify

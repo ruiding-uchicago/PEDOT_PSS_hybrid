@@ -214,8 +214,25 @@ def upstream(model, clean, raw):
     return base, special, filler
 
 
-def late_deltas(model, raw, science, field_vectors, state_before_late, active):
-    """The 7 late-stage deltas at the parent's sequential state (n_stage x n, NaN on platform rows)."""
+def stages_needed(combiner, stages):
+    """Number of leading late stages that can change the output.
+
+    A late stage only reaches the prediction through its combiner weight and through the sequential parent
+    state read by the stages after it. Stages after the last one with a non-zero combiner weight therefore
+    cannot change the output; their deltas are not computed (0 is used, so weight x delta is exactly 0).
+    """
+    w = np.asarray(combiner.main_weights(), float)
+    if len(w) != len(stages):
+        return len(stages)
+    nonzero = np.flatnonzero(w != 0.0)
+    return int(nonzero.max()) + 1 if nonzero.size else 0
+
+
+def late_deltas(model, raw, science, field_vectors, state_before_late, active, n_needed=None):
+    """The 7 late-stage deltas at the parent's sequential state (n_stage x n, NaN on platform rows).
+
+    Stages with index >= n_needed are not evaluated (delta 0); see stages_needed.
+    """
     values = np.asarray(state_before_late, float).copy()
     stages = model.stages_
     deltas = np.full((len(stages), len(values)), np.nan)
@@ -224,6 +241,9 @@ def late_deltas(model, raw, science, field_vectors, state_before_late, active):
         sci = [science[i] for i in selected]
         rw = [raw[i] for i in selected]
         for s, st in enumerate(stages):
+            if n_needed is not None and s >= n_needed:
+                deltas[s, selected] = 0.0
+                continue
             if st["kind"] == "global_kernel":
                 d = st["state"].predict_delta(sci, values[selected][:, ocs.PARENT4])
             else:
@@ -293,9 +313,11 @@ class StackedSurrogate:
             filler_g = apply_filler_guard(self.guard, adm, special_g, filler_g, self.supports)
         else:
             filler_g = filler
-        if field_vectors is None and np.any(active):
+        n_needed = stages_needed(self.combiner, model.stages_)
+        needs_text_encoder = any(st["kind"] == "matbert" for st in model.stages_[:n_needed])
+        if field_vectors is None and needs_text_encoder and np.any(active):
             field_vectors = model.encoder_.encode(raw)
-        deltas = late_deltas(model, raw, science, field_vectors, filler_g, active)
+        deltas = late_deltas(model, raw, science, field_vectors, filler_g, active, n_needed=n_needed)
         M = combine(filler_g, deltas, active, self.combiner)
         P = physics_P(self.p_state, raw, M, active)
         return {"M": M, "P": P, "state_before_late": filler_g, "deltas": deltas, "active": active}

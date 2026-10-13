@@ -48,7 +48,6 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
 python -m pedot_pss setup-model
-python -m pedot_pss setup-encoder
 python -m pedot_pss examples/polybot_recipe.json
 ```
 
@@ -56,32 +55,33 @@ python -m pedot_pss examples/polybot_recipe.json
 Release. It is excluded from Git. `PEDOT_PSS_MODEL` or `--model PATH` can select
 a locally installed model file.
 
-`setup-encoder` explicitly downloads the frozen MatBERT configuration,
-vocabulary and checkpoint directly from the author server. The checkpoint is
-about 438 MB and is excluded from Git. Prediction uses local assets offline.
-For a custom asset directory, use `setup-encoder --destination /your/assets`
-and set `PEDOT_PSS_MATBERT_ASSETS` to that directory.
 
-### Text encoder runtime
+### Text fields and the text encoder
 
-The frozen MatBERT text encoder runs in a separate, persistent Python process that
-imports only PyTorch, transformers and NumPy. The prediction process itself never
-imports PyTorch. On macOS the LightGBM, scikit-learn and PyTorch wheels each bring
-their own OpenMP runtime; running PyTorch's multithreaded kernels next to the other
-two deadlocked in an OpenMP barrier. With one runtime per process this cannot occur.
-The encoder uses one CPU thread by default, so its results do not depend on the
-host's core count. Environment settings:
+Free-text fields are first parsed into categories and numbers (grade, deposition method, substrate,
+specimen geometry, measurement method, additive identities with doses, process-stage temperatures and
+times). These parsed features drive the physics and most of the model. The raw text also enters two small
+residual-correction heads (a word TF-IDF head and a text-plus-numeric LightGBM head). The frozen MatBERT
+head of the original model family receives combiner weight 0 in this model, so prediction never runs the
+MatBERT encoder: no PyTorch install, no 438 MB download and no encoder process are needed. (`setup-encoder`
+and the optional `[encoder]` dependencies remain only for models that weight that head.)
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `PEDOT_PSS_ENCODER` | `subprocess` | `inprocess` runs the encoder in the calling process with the fixed thread count (for hosts that cannot start subprocesses); keep one thread there, since more than one re-creates the macOS OpenMP deadlock |
-| `PEDOT_PSS_ENCODER_THREADS` | `1` | PyTorch CPU threads used by the encoder |
-| `PEDOT_PSS_ENCODER_TIMEOUT` | `900` | Seconds to wait for one encoder request before failing |
-| `PEDOT_PSS_PREDICT_THREADS` | `1` | Threads for the fitted LightGBM and ExtraTrees learners. One thread gives bitwise-repeatable forest sums and forms no LightGBM OpenMP thread team (relevant if the caller has also imported PyTorch); values otherwise do not depend on it |
+Use the canonical wording below. In our checks, rephrasing the same condition changed a prediction by at
+most 0.05 log10 units (about 12%). Recognised categories, with training-set counts:
 
-The first prediction that needs text features starts the encoder (a few seconds);
-later predictions reuse it. `pedot_pss.close_encoder()` stops it early; it also
-stops when the calling process exits.
+| Field | Recognised categories |
+|---|---|
+| `polymer_grade` | PH1000 (3,890), Baytron P (494), AI4083 (116), PH500 (76), SV3 (7) |
+| `deposition_method` | spin coating (3,572), drop casting (892), casting (702), wet spinning (315), direct ink writing (177), screen printing (150), blade coating (120), inkjet printing (103), spray coating (63), dip coating (26), slot-die coating (8), electrospinning (1) |
+| `substrate` | glass, silicon, PET, free-standing, ITO, PI, PDMS, PEN, metal, paper, textile, FTO |
+| `specimen_geometry` | film, printed trace, fiber, vertical junction, gel, bulk, porous |
+| `measurement_method` | four-point probe, two-point probe, Hall, DC, impedance (direction in `measurement_direction`: in-plane / out-of-plane) |
+
+In optimization loops, keep the text fields fixed at canonical values and vary the numeric fields, the
+additive doses and `process_stages`.
+
+`PEDOT_PSS_PREDICT_THREADS` (default 1) sets the threads of the fitted LightGBM and ExtraTrees learners;
+one thread gives bitwise-repeatable predictions.
 
 ```python
 import json
@@ -92,7 +92,7 @@ experiment = json.loads(Path("examples/polybot_recipe.json").read_text())
 prediction = predict(experiment)
 print(prediction["conductivity_S_cm"])
 
-# The loaded model and frozen encoder are reused within this process.
+# The loaded model is reused within this process.
 predictions = predict_many([experiment, experiment])
 ```
 
@@ -114,8 +114,9 @@ The package is meant to be called as a black-box tool inside optimization or age
   returns a list in the same order; prefer batches inside a loop.
 - **Tool schema:** [`input_schema.json`](input_schema.json) is a JSON Schema for the experiment dictionary and can
   be used directly as the parameter schema of an LLM tool/function definition.
-- **Speed (laptop CPU):** loading the model takes about 2–3 s; the first batch also starts the text encoder
-  (a 19-recipe batch took about 5 s including that start-up); later calls in the same process reuse both.
+- **Speed (laptop CPU):** loading the model takes about 2–3 s (the very first import after installation takes
+  about 30 s while Python compiles the package); a batch of 19 recipes then takes about 1.5 s. No GPU and no
+  PyTorch are needed.
 - **Deterministic:** the same input always returns the same prediction.
 - **Errors:** unknown field names, outcome or provenance fields (DOI, paper IDs, measured conductivity, SD,
   coverage, ...), malformed numbers or units and unsupported process-stage kinds raise `ValueError`/`TypeError`

@@ -18,7 +18,7 @@ from ._validation import validate, require_condition, canonical_extra_units
 from ._assets import setup_encoder, setup_model
 from ._encoder import shutdown as close_encoder
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 _DEFAULT_MODEL = Path(__file__).with_name("models") / "model.joblib"
 _MODELS = {}
 _LOAD_LOCK = threading.RLock()

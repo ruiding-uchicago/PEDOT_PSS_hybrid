@@ -1,5 +1,5 @@
 {
-  "status": "complete_fitted_model_fresh_venv_inference_verified_unreleased",
+  "status": "released_v0.1.1_code_with_v0.1.0_model_asset",
   "trained_release_model_present": true,
   "architecture": "original_source_free_global_fallback_kernel_six_late_heads_supported_physics_and_P_plus_polybot_physics_platform_two_state_gem_dewet_refit_on_cleaned_population_plus_joint_late_combiner_and_physics_guards",
   "complete_historical_M_graph_or_old_weights_unchanged": false,
@@ -80,7 +80,7 @@
   },
   "next_required": "Owner approval, then install the stack-1013 export as the package model (run_pipeline.py --install-into-package), commit/push, publish the release asset.",
   "input_version": "experiment-input-v3-text-clean-1012",
-  "standalone_inference_status": "passed_fresh_venv_macOS_python3.12_isolated_encoder_subprocess",
+  "standalone_inference_status": "passed_fresh_venv_macOS_python3.12_without_torch",
   "model_artifact": {
     "filename": "model.joblib",
     "bytes": 122696771,
@@ -109,5 +109,15 @@
     "public_predict_many_vs_private_P_batch_t1": 2.05613304160579e-13,
     "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
   },
-  "encoder_runtime": "Frozen MatBERT runs in a persistent torch-only subprocess (one OpenMP runtime per process), 1 CPU thread by default; PEDOT_PSS_ENCODER=inprocess fallback with the same fixed thread count."
+  "encoder_runtime": "Not used at prediction: the joint late combiner gives the MatBERT head weight 0, so stages after the last weighted one (fullfeature, char, matbert) are skipped; predictions are bitwise identical to v0.1.0 and need no PyTorch, no MatBERT download and no encoder process.",
+  "package_version": "0.1.1",
+  "inference_change_v0.1.1": {
+    "skipped_late_stages": [
+      "fullfeature",
+      "char",
+      "matbert"
+    ],
+    "reason": "combiner weight 0 and no later weighted stage reads them",
+    "verification": "6780 rows: single-thread old vs new bitwise identical (multi-thread runs differ from themselves by 2.2e-16); 19 parity recipes in a fresh venv without torch: max |diff| 0.0 vs v0.1.0"
+  }
 }
