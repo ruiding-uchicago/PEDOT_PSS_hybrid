@@ -1,0 +1,113 @@
+{
+  "status": "complete_fitted_model_fresh_venv_inference_verified_unreleased",
+  "trained_release_model_present": true,
+  "architecture": "original_source_free_global_fallback_kernel_six_late_heads_supported_physics_and_P_plus_polybot_physics_platform_two_state_gem_dewet_refit_on_cleaned_population_plus_joint_late_combiner_and_physics_guards",
+  "complete_historical_M_graph_or_old_weights_unchanged": false,
+  "input_contract_fields": 24,
+  "allowed_extra_scalars": 56,
+  "corpus_included": false,
+  "pretrained_encoder_checkpoint_in_git": false,
+  "actual_cross_validation_results": {
+    "cleaned_population": "keep_v2_cap08 (536 literature rows removed, 6244 scored)",
+    "M": {
+      "all": {
+        "n": 6244,
+        "r2_log10": 0.9602206723440294,
+        "rmse_log10": 0.36313818074689674,
+        "mae_log10": 0.22456261493940533,
+        "within_factor_10": 0.9753363228699552
+      },
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.961335560329683,
+        "rmse_log10": 0.35849746607722316,
+        "mae_log10": 0.2224762994532528,
+        "within_factor_10": 0.9766574809531529
+      },
+      "polybot": {
+        "n": 75,
+        "r2_log10": 0.8327579931843371,
+        "rmse_log10": 0.6382224913548608,
+        "mae_log10": 0.39616901806040206,
+        "within_factor_10": 0.8666666666666667
+      }
+    },
+    "P": {
+      "all": {
+        "n": 6244,
+        "r2_log10": 0.9599573709028147,
+        "rmse_log10": 0.3643380138462291,
+        "mae_log10": 0.22610483031316356,
+        "within_factor_10": 0.9750160153747598
+      },
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.9610697772747093,
+        "rmse_log10": 0.35972752873424,
+        "mae_log10": 0.2240372644060404,
+        "within_factor_10": 0.9763332792997245
+      },
+      "polybot": {
+        "n": 75,
+        "r2_log10": 0.8327579931843371,
+        "rmse_log10": 0.6382224913548608,
+        "mae_log10": 0.39616901806040206,
+        "within_factor_10": 0.8666666666666667
+      }
+    },
+    "all_6780_including_removed": {
+      "M": {
+        "n": 6780,
+        "r2_log10": 0.8982414969096909,
+        "rmse_log10": 0.6133823969165547,
+        "mae_log10": 0.3293120501504971,
+        "within_factor_10": 0.9196165191740413
+      },
+      "P": {
+        "n": 6780,
+        "r2_log10": 0.8980836397580606,
+        "rmse_log10": 0.6138579801481143,
+        "mae_log10": 0.3307591279303036,
+        "within_factor_10": 0.9194690265486726
+      }
+    },
+    "nested_leave_one_fold_out": {
+      "M_r2": 0.95992,
+      "P_r2": 0.95974
+    },
+    "polybot_selection_aware_nested_r2": 0.730246862635458,
+    "polybot_final_fit_r2_training_not_heldout": 0.9618895355368487
+  },
+  "next_required": "Owner approval, then install the stack-1013 export as the package model (run_pipeline.py --install-into-package), commit/push, publish the release asset.",
+  "input_version": "experiment-input-v3-text-clean-1012",
+  "standalone_inference_status": "passed_fresh_venv_macOS_python3.12_isolated_encoder_subprocess",
+  "model_artifact": {
+    "filename": "model.joblib",
+    "bytes": 122696771,
+    "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.1.0/model.joblib",
+    "model_version": "original-structure-experiment-only-MP-1012+refit-keep_v2_cap08-1013+m-stack-joint-late-combiner-infer-v1-1013",
+    "input_version": "experiment-input-v3-text-clean-1012",
+    "default_output": "P",
+    "distribution": "Complete fitted state in the pinned GitHub release"
+  },
+  "point_predictions_included": false,
+  "polybot_selection_aware_nested_r2_log10": 0.730246862635458,
+  "previous_platform_branch_polybot_r2_log10": 0.3372910076423177,
+  "standalone_inference_parity_max_abs_log10": {
+    "M_batch_vs_private_batch_t1_all5cols": 2.282618538629322e-13,
+    "M_single_vs_private_single_t1_all5cols": 4.996003610813204e-16,
+    "M_batch_vs_private_batch_t2_all5cols": 2.282618538629322e-13,
+    "M_batch_vs_private_cached_training_vectors": 2.05613304160579e-13,
+    "M_single_vs_private_cached_training_vectors": 2.149391775674303e-13,
+    "M_batch_vs_single_public": 1.4876988529977098e-13,
+    "P_batch_vs_private_batch_t1_all5cols": 2.282618538629322e-13,
+    "P_single_vs_private_single_t1_all5cols": 4.996003610813204e-16,
+    "P_batch_vs_private_batch_t2_all5cols": 2.282618538629322e-13,
+    "P_batch_vs_private_cached_training_vectors": 2.05613304160579e-13,
+    "P_single_vs_private_cached_training_vectors": 2.149391775674303e-13,
+    "P_batch_vs_single_public": 1.4876988529977098e-13,
+    "public_predict_many_vs_private_P_batch_t1": 2.05613304160579e-13,
+    "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
+  },
+  "encoder_runtime": "Frozen MatBERT runs in a persistent torch-only subprocess (one OpenMP runtime per process), 1 CPU thread by default; PEDOT_PSS_ENCODER=inprocess fallback with the same fixed thread count."
+}

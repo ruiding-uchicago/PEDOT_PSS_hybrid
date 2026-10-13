@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/input_schema.json",
+  "title": "PEDOT:PSS experimental input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "polymer_grade": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stock_solids_scope": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pedot_pss_ratio_raw": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dose_basis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "deposition_method": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "substrate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "specimen_geometry": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "post_treatment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "process_sequence": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "measurement_method": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "measurement_direction": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "measurement_quantity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stock_solids_wt_percent": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "dry_temperature_C": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": -273.15
+    },
+    "dry_duration_min": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "anneal_temperature_C": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": -273.15
+    },
+    "anneal_duration_min": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "post_treatment_temperature_C": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": -273.15
+    },
+    "post_treatment_duration_min": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "measurement_temperature_C": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": -273.15
+    },
+    "additive_names": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "additive_amounts_raw": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "number",
+          "null"
+        ]
+      }
+    },
+    "extra_scalar_features": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "value",
+          "unit"
+        ],
+        "properties": {
+          "name": {
+            "enum": [
+              "air_storage_time",
+              "applied_voltage",
+              "blade_gap",
+              "blend_pedot_pss_dry_mass_percent",
+              "coating_speed",
+              "coating_stage_temperature",
+              "concentration",
+              "drop_spacing",
+              "ebl_acceleration_voltage",
+              "final_ink_solids_wt_percent",
+              "flow_rate",
+              "hz_concentration",
+              "laser_line_gap",
+              "measurement_bias",
+              "measurement_frequency",
+              "mix_duration",
+              "mix_rotation_speed",
+              "motion_platform_speed",
+              "nozzle_diameter",
+              "nozzle_to_substrate_distance",
+              "organic_solvent_content",
+              "ph",
+              "planned_via_diameter",
+              "post_coating_speed",
+              "post_coating_stage_temperature",
+              "post_dry_duration",
+              "post_dry_temperature",
+              "post_wash_drying_duration",
+              "post_wash_drying_temperature",
+              "preparation_water_calcium_mg_l",
+              "preparation_water_chloride_mg_l",
+              "preparation_water_magnesium_mg_l",
+              "preparation_water_ph",
+              "preparation_water_potassium_mg_l",
+              "preparation_water_so4_reported_mg_l",
+              "preparation_water_sodium_mg_l",
+              "pss_polymerization_time",
+              "pump_speed",
+              "relative_humidity",
+              "second_anneal_duration",
+              "second_anneal_temperature",
+              "solution_ph",
+              "spin_duration",
+              "spin_speed",
+              "stock_volume",
+              "substrate_uvo_duration",
+              "tdae_concentration",
+              "tmu_concentration",
+              "total_draw_ratio",
+              "treating_temperature",
+              "ultrasonication_time",
+              "vacuum_drying_duration",
+              "water_immersion_duration",
+              "water_immersion_time",
+              "working_solution_concentration",
+              "writing_speed"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "process_stages": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "anneal",
+              "cool",
+              "deposit",
+              "dry",
+              "filter",
+              "heat",
+              "humidity",
+              "immerse",
+              "laser",
+              "mix",
+              "other",
+              "plasma",
+              "post_treat",
+              "press",
+              "rinse",
+              "soak",
+              "store",
+              "stretch",
+              "uv",
+              "uv_ozone",
+              "wash"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "atmosphere": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pressure_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "object": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "temperature_C": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": -273.15
+          },
+          "duration_s": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "speed_mm_s": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "rotation_rpm": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "blade_gap_um": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "relative_humidity_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "pressure_bar": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "flow_rate_mL_min": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "voltage_V": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "uv_wavelength_nm": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "laser_power_W": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "cycles": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "temperature_range_C": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "duration_range_s": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    }
+  },
+  "description": "24 optional pre-experiment fields; at least one usable planned condition is required. Extra scalar allowlist is v2 with planned via/bias/blend and preparation-water controls. No source identifiers or outcome measurements.",
+  "minProperties": 1
+}

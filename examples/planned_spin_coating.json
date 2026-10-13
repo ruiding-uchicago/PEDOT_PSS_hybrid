@@ -1,0 +1,32 @@
+{
+  "polymer_grade": "PH1000",
+  "stock_solids_wt_percent": 1.2,
+  "stock_solids_scope": "PEDOT:PSS stock dispersion",
+  "additive_names": [
+    "DMSO"
+  ],
+  "additive_amounts_raw": [
+    "5 vol%"
+  ],
+  "dose_basis": "DMSO volume per volume of PEDOT:PSS stock dispersion",
+  "deposition_method": "spin coating at 2000 rpm for 60 s",
+  "substrate": "glass",
+  "specimen_geometry": "film",
+  "measurement_method": "four-point probe",
+  "measurement_direction": "in-plane",
+  "measurement_temperature_C": 25.0,
+  "process_stages": [
+    {
+      "kind": "deposit",
+      "method": "spin coating",
+      "rotation_rpm": 2000.0,
+      "duration_s": 60.0
+    },
+    {
+      "kind": "dry",
+      "temperature_C": 120.0,
+      "duration_s": 600.0,
+      "atmosphere": "air"
+    }
+  ]
+}

@@ -1,0 +1,267 @@
+{
+  "polymer_grade": "PH1000 (Heraeus)",
+  "stock_solids_scope": null,
+  "pedot_pss_ratio_raw": null,
+  "dose_basis": "vol%; stock_or_mixture_denominator_unresolved",
+  "deposition_method": "blade coating",
+  "substrate": "2 x 2 cm Si wafer pieces with 300 nm SiO2",
+  "specimen_geometry": "film",
+  "post_treatment": "blade-applied solvent post-treatment; methanol 80 vol%; ethanol 20 vol%; water 0 vol%",
+  "process_sequence": "uv_ozone UV-ozone treatment for 30 min duration_s=1800 s; mix Mix additives with 1 mL pristine PEDOT:PSS stock duration_s=60 s rotation_rpm=500 rpm; deposit First blade coating temperature_C=70 C speed_mm_s=0.5 mm/s blade_gap_um=50 um; dry Dry first coating on heated stage temperature_C=70 C duration_s=60 s; anneal First anneal temperature_C=130 C duration_s=60 s; post_treat Blade-applied solvent post-processing of existing film, not a second PEDOT layer temperature_C=65 C speed_mm_s=0.5 mm/s; dry Dry after solvent post-processing temperature_C=65 C duration_s=30 s; anneal Second anneal temperature_C=130 C duration_s=60 s",
+  "measurement_method": null,
+  "measurement_direction": null,
+  "measurement_quantity": null,
+  "stock_solids_wt_percent": null,
+  "dry_temperature_C": 70.0,
+  "dry_duration_min": 1.0,
+  "anneal_temperature_C": 130.0,
+  "anneal_duration_min": 1.0,
+  "post_treatment_temperature_C": 65.0,
+  "post_treatment_duration_min": null,
+  "measurement_temperature_C": null,
+  "additive_names": [
+    "DMSO",
+    "ethylene glycol"
+  ],
+  "additive_amounts_raw": [
+    "4 vol%",
+    "0 vol%"
+  ],
+  "extra_scalar_features": [
+    {
+      "name": "blade_gap",
+      "value": 50.0,
+      "unit": "um"
+    },
+    {
+      "name": "coating_speed",
+      "value": 0.5,
+      "unit": "mm/s"
+    },
+    {
+      "name": "coating_stage_temperature",
+      "value": 70.0,
+      "unit": "C"
+    },
+    {
+      "name": "mix_duration",
+      "value": 60.0,
+      "unit": "s"
+    },
+    {
+      "name": "mix_rotation_speed",
+      "value": 500.0,
+      "unit": "rpm"
+    },
+    {
+      "name": "post_coating_speed",
+      "value": 0.5,
+      "unit": "mm/s"
+    },
+    {
+      "name": "post_coating_stage_temperature",
+      "value": 65.0,
+      "unit": "C"
+    },
+    {
+      "name": "post_dry_duration",
+      "value": 30.0,
+      "unit": "s"
+    },
+    {
+      "name": "post_dry_temperature",
+      "value": 65.0,
+      "unit": "C"
+    },
+    {
+      "name": "second_anneal_duration",
+      "value": 60.0,
+      "unit": "s"
+    },
+    {
+      "name": "second_anneal_temperature",
+      "value": 130.0,
+      "unit": "C"
+    },
+    {
+      "name": "stock_volume",
+      "value": 1.0,
+      "unit": "mL"
+    },
+    {
+      "name": "substrate_uvo_duration",
+      "value": 1800.0,
+      "unit": "s"
+    }
+  ],
+  "process_stages": [
+    {
+      "kind": "uv_ozone",
+      "method": "UV-ozone treatment for 30 min",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": null,
+      "duration_s": 1800.0,
+      "speed_mm_s": null,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "mix",
+      "method": "Mix additives with 1 mL pristine PEDOT:PSS stock",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": null,
+      "duration_s": 60.0,
+      "speed_mm_s": null,
+      "rotation_rpm": 500.0,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "deposit",
+      "method": "First blade coating",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 70.0,
+      "duration_s": null,
+      "speed_mm_s": 0.5,
+      "rotation_rpm": null,
+      "blade_gap_um": 50.0,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "dry",
+      "method": "Dry first coating on heated stage",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 70.0,
+      "duration_s": 60.0,
+      "speed_mm_s": null,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "anneal",
+      "method": "First anneal",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 130.0,
+      "duration_s": 60.0,
+      "speed_mm_s": null,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "post_treat",
+      "method": "Blade-applied solvent post-processing of existing film, not a second PEDOT layer",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 65.0,
+      "duration_s": null,
+      "speed_mm_s": 0.5,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "dry",
+      "method": "Dry after solvent post-processing",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 65.0,
+      "duration_s": 30.0,
+      "speed_mm_s": null,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    },
+    {
+      "kind": "anneal",
+      "method": "Second anneal",
+      "atmosphere": null,
+      "pressure_reference": null,
+      "object": null,
+      "temperature_C": 130.0,
+      "duration_s": 60.0,
+      "speed_mm_s": null,
+      "rotation_rpm": null,
+      "blade_gap_um": null,
+      "relative_humidity_percent": null,
+      "pressure_bar": null,
+      "flow_rate_mL_min": null,
+      "voltage_V": null,
+      "uv_wavelength_nm": null,
+      "laser_power_W": null,
+      "cycles": null,
+      "temperature_range_C": null,
+      "duration_range_s": null
+    }
+  ]
+}

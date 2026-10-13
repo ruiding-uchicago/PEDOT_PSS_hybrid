@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pedot-pss-hybrid"
+version = "0.1.0"
+description = "Experiment-input-only PEDOT:PSS conductivity surrogate"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy==2.2.6",
+  "scipy==1.13.1",
+  "scikit-learn==1.8.0",
+  "lightgbm==4.6.0",
+  "joblib==1.5.2",
+  "threadpoolctl==3.6.0",
+  "catboost==1.2.10",
+  "torch==2.8.0",
+  "transformers==4.55.4",
+  "tokenizers==0.21.4",
+]
+
+[project.scripts]
+pedot-pss = "pedot_pss.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pedot_pss = ["_vendor/*.json", "models/*.joblib", "models/*.json", "assets/*.txt"]

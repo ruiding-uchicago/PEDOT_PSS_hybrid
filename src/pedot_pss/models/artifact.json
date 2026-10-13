@@ -1,0 +1,9 @@
+{
+  "filename": "model.joblib",
+  "bytes": 122696771,
+  "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.1.0/model.joblib",
+  "model_version": "original-structure-experiment-only-MP-1012+refit-keep_v2_cap08-1013+m-stack-joint-late-combiner-infer-v1-1013",
+  "input_version": "experiment-input-v3-text-clean-1012",
+  "default_output": "P",
+  "distribution": "Complete fitted state in the pinned GitHub release"
+}

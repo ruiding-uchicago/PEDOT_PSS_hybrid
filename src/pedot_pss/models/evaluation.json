@@ -1,0 +1,82 @@
+{
+  "version": "original-structure-experiment-only-MP-1012+refit-keep_v2_cap08-1013+m-stack-joint-late-combiner-infer-v1-1013",
+  "input_version": "experiment-input-v3-text-clean-1012",
+  "status": "complete_sealed_five_fold_cleaned_population",
+  "n": 6244,
+  "polybot_n": 75,
+  "literature_n": 6169,
+  "n_removed": 536,
+  "scores": {
+    "M": {
+      "all": {
+        "n": 6244,
+        "r2_log10": 0.9602206723440294,
+        "rmse_log10": 0.36313818074689674,
+        "mae_log10": 0.22456261493940533,
+        "within_factor_10": 0.9753363228699552
+      },
+      "polybot": {
+        "n": 75,
+        "r2_log10": 0.8327579931843371,
+        "rmse_log10": 0.6382224913548608,
+        "mae_log10": 0.39616901806040206,
+        "within_factor_10": 0.8666666666666667
+      },
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.961335560329683,
+        "rmse_log10": 0.35849746607722316,
+        "mae_log10": 0.2224762994532528,
+        "within_factor_10": 0.9766574809531529
+      }
+    },
+    "P": {
+      "all": {
+        "n": 6244,
+        "r2_log10": 0.9599573709028147,
+        "rmse_log10": 0.3643380138462291,
+        "mae_log10": 0.22610483031316356,
+        "within_factor_10": 0.9750160153747598
+      },
+      "polybot": {
+        "n": 75,
+        "r2_log10": 0.8327579931843371,
+        "rmse_log10": 0.6382224913548608,
+        "mae_log10": 0.39616901806040206,
+        "within_factor_10": 0.8666666666666667
+      },
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.9610697772747093,
+        "rmse_log10": 0.35972752873424,
+        "mae_log10": 0.2240372644060404,
+        "within_factor_10": 0.9763332792997245
+      }
+    }
+  },
+  "all_6780_including_removed": {
+    "M": {
+      "n": 6780,
+      "r2_log10": 0.8982414969096909,
+      "rmse_log10": 0.6133823969165547,
+      "mae_log10": 0.3293120501504971,
+      "within_factor_10": 0.9196165191740413
+    },
+    "P": {
+      "n": 6780,
+      "r2_log10": 0.8980836397580606,
+      "rmse_log10": 0.6138579801481143,
+      "mae_log10": 0.3307591279303036,
+      "within_factor_10": 0.9194690265486726
+    }
+  },
+  "nested_leave_one_fold_out_r2": {
+    "M": 0.95992,
+    "P": 0.95974
+  },
+  "polybot_selection_aware_nested_r2_log10": 0.730246862635458,
+  "polybot_final_fit_r2_log10_training_not_heldout": 0.9618895355368487,
+  "target_units": "log10(S/cm)",
+  "scope": "Fixed random-row outer five folds on the keep_v2_cap08 population (536 literature rows removed by a rule that used OOF residuals plus extraction evidence; removed rows excluded from training and scoring). Combiner/guards/Polybot branch selected on these folds (nested estimates reported). Not a wet-lab/control-range extrapolation test.",
+  "corpus_or_point_predictions_included": false
+}
