@@ -1,0 +1,233 @@
+name,smiles,category
+4-hydroxybenzoic acid,C1=CC(=CC=C1C(=O)O)O,carboxylic_or_other_acid
+adipic acid,C(CCC(=O)O)CC(=O)O,carboxylic_or_other_acid
+boric acid,B(O)(O)O,carboxylic_or_other_acid
+butyric acid,CCCC(=O)O,carboxylic_or_other_acid
+dichloroacetic acid,C(C(=O)O)(Cl)Cl,carboxylic_or_other_acid
+difluoroacetic acid,C(C(=O)O)(F)F,carboxylic_or_other_acid
+gallic acid,C1=C(C=C(C(=C1O)O)O)C(=O)O,carboxylic_or_other_acid
+gluconic acid,C([C@H]([C@H]([C@@H]([C@H](C(=O)O)O)O)O)O)O,carboxylic_or_other_acid
+glutaric acid,C(CC(=O)O)CC(=O)O,carboxylic_or_other_acid
+glycolic acid,C(C(=O)O)O,carboxylic_or_other_acid
+itaconic acid,C=C(CC(=O)O)C(=O)O,carboxylic_or_other_acid
+levulinic acid,CC(=O)CCC(=O)O,carboxylic_or_other_acid
+malic acid,C(C(C(=O)O)O)C(=O)O,carboxylic_or_other_acid
+methacrylic acid,CC(=C)C(=O)O,carboxylic_or_other_acid
+pentafluoropropionic acid,C(=O)(C(C(F)(F)F)(F)F)O,carboxylic_or_other_acid
+phenylphosphonic acid,C1=CC=C(C=C1)P(=O)(O)O,carboxylic_or_other_acid
+phthalic acid,C1=CC=C(C(=C1)C(=O)O)C(=O)O,carboxylic_or_other_acid
+propionic acid,CCC(=O)O,carboxylic_or_other_acid
+salicylic acid,C1=CC=C(C(=C1)C(=O)O)O,carboxylic_or_other_acid
+sorbic acid,C/C=C/C=C/C(=O)O,carboxylic_or_other_acid
+squaric acid,C1(=C(C(=O)C1=O)O)O,carboxylic_or_other_acid
+succinic acid,C(CC(=O)O)C(=O)O,carboxylic_or_other_acid
+tannic acid,C1=C(C=C(C(=C1O)O)O)C(=O)OC2=CC(=CC(=C2O)O)C(=O)OC[C@@H]3[C@H]([C@@H]([C@H]([C@@H](O3)OC(=O)C4=CC(=C(C(=C4)OC(=O)C5=CC(=C(C(=C5)O)O)O)O)O)OC(=O)C6=CC(=C(C(=C6)OC(=O)C7=CC(=C(C(=C7)O)O)O)O)O)OC(=O)C8=CC(=C(C(=C8)OC(=O)C9=CC(=C(C(=C9)O)O)O)O)O)OC(=O)C1=CC(=C(C(=C1)OC(=O)C1=CC(=C(C(=C1)O)O)O)O)O,carboxylic_or_other_acid
+tetrafluoroboric acid,[H+].[B-](F)(F)(F)F,carboxylic_or_other_acid
+trichloroacetic acid,C(=O)(C(Cl)(Cl)Cl)O,carboxylic_or_other_acid
+"1,2,6-hexanetriol",C(CCO)CC(CO)O,glycol_polyol
+"1,2-butanediol",CCC(CO)O,glycol_polyol
+"1,2-hexanediol",CCCCC(CO)O,glycol_polyol
+"1,3-butanediol",CC(CCO)O,glycol_polyol
+"1,4-butanediol",C(CCO)CO,glycol_polyol
+"1,5-pentanediol",C(CCO)CCO,glycol_polyol
+"1,6-hexanediol",C(CCCO)CCO,glycol_polyol
+"2,3-butanediol",CC(C(C)O)O,glycol_polyol
+catechol,C1=CC=C(C(=C1)O)O,glycol_polyol
+diglycerol,C(C(COCC(CO)O)O)O,glycol_polyol
+dipropylene glycol,CC(CO)OC(C)CO.CC(COCC(C)O)O,glycol_polyol
+hexylene glycol,CC(CC(C)(C)O)O,glycol_polyol
+hydroquinone,C1=CC(=CC=C1O)O,glycol_polyol
+neopentyl glycol,CC(C)(CO)CO,glycol_polyol
+pentaerythritol,C(C(CO)(CO)CO)O,glycol_polyol
+pentaethylene glycol,C(COCCOCCOCCOCCO)O,glycol_polyol
+propylene glycol,CC(CO)O,glycol_polyol
+resorcinol,C1=CC(=CC(=C1)O)O,glycol_polyol
+tetraethylene glycol,C(COCCOCCOCCO)O,glycol_polyol
+trimethylolpropane,CCC(CO)(CO)CO,glycol_polyol
+1-allyl-3-methylimidazolium chloride,C[N+]1=CN(C=C1)CC=C.[Cl-],ionic_liquid
+1-butyl-1-methylpyrrolidinium bis(trifluoromethylsulfonyl)imide,CCCC[N+]1(CCCC1)C.C(F)(F)(F)S(=O)(=O)[N-]S(=O)(=O)C(F)(F)F,ionic_liquid
+1-butyl-3-methylimidazolium acetate,CCCCN1C=C[N+](=C1)C.CC(=O)[O-],ionic_liquid
+1-butyl-3-methylimidazolium chloride,CCCCN1C=C[N+](=C1)C.[Cl-],ionic_liquid
+1-butyl-3-methylimidazolium dicyanamide,CCCCN1C=C[N+](=C1)C.C(=[N-])=NC#N,ionic_liquid
+1-butyl-3-methylimidazolium hexafluorophosphate,CCCCN1C=C[N+](=C1)C.F[P-](F)(F)(F)(F)F,ionic_liquid
+1-butyl-3-methylimidazolium methyl sulfate,CCCCN1C=C[N+](=C1)C.COS(=O)(=O)[O-],ionic_liquid
+1-butyl-3-methylimidazolium thiocyanate,CCCCN1C=C[N+](=C1)C.C(#N)[S-],ionic_liquid
+1-butylpyridinium tetrafluoroborate,[B-](F)(F)(F)F.CCCC[N+]1=CC=CC=C1,ionic_liquid
+1-ethyl-3-methylimidazolium acetate,CCN1C=C[N+](=C1)C.CC(=O)[O-],ionic_liquid
+1-ethyl-3-methylimidazolium bromide,CCN1C=C[N+](=C1)C.[Br-],ionic_liquid
+1-ethyl-3-methylimidazolium dimethyl phosphate,CCN1C=C[N+](=C1)C.COP(=O)([O-])OC,ionic_liquid
+1-ethyl-3-methylimidazolium hexafluorophosphate,CCN1C=C[N+](=C1)C.F[P-](F)(F)(F)(F)F,ionic_liquid
+1-ethyl-3-methylimidazolium hydrogen sulfate,CCN1C=C[N+](=C1)C.OS(=O)(=O)[O-],ionic_liquid
+1-ethyl-3-methylimidazolium iodide,CCN1C=C[N+](=C1)C.[I-],ionic_liquid
+1-ethyl-3-methylimidazolium methanesulfonate,CCN1C=C[N+](=C1)C.CS(=O)(=O)[O-],ionic_liquid
+1-ethyl-3-methylimidazolium thiocyanate,CCN1C=C[N+](=C1)C.C(#N)[S-],ionic_liquid
+1-ethyl-3-methylimidazolium trifluoromethanesulfonate,CCN1C=C[N+](=C1)C.C(F)(F)(F)S(=O)(=O)[O-],ionic_liquid
+1-hexyl-3-methylimidazolium bis(trifluoromethylsulfonyl)imide,CCCCCCN1C=C[N+](=C1)C.C(F)(F)(F)S(=O)(=O)[N-]S(=O)(=O)C(F)(F)F,ionic_liquid
+1-octyl-3-methylimidazolium tetrafluoroborate,[B-](F)(F)(F)F.CCCCCCCCN1C=C[N+](=C1)C,ionic_liquid
+choline bis(trifluoromethylsulfonyl)imide,C[N+](C)(C)CCO.C(F)(F)(F)S(=O)(=O)[N-]S(=O)(=O)C(F)(F)F,ionic_liquid
+choline dihydrogen phosphate,C[N+](C)(C)CCO.OP(=O)(O)[O-],ionic_liquid
+ethylammonium nitrate,CCN.[N+](=O)(O)[O-],ionic_liquid
+triethylammonium bis(trifluoromethylsulfonyl)imide,CC[NH+](CC)CC.C(F)(F)(F)S(=O)(=O)[N-]S(=O)(=O)C(F)(F)F,ionic_liquid
+trihexyltetradecylphosphonium chloride,CCCCCCCCCCCCCC[P+](CCCCCC)(CCCCCC)CCCCCC.[Cl-],ionic_liquid
+"1,2-dimethoxyethane",COCCOC,polar_aprotic_solvent
+"1,3-dimethyl-2-imidazolidinone",CN1CCN(C1=O)C,polar_aprotic_solvent
+"1,3-dioxolane",C1COCO1,polar_aprotic_solvent
+"1,4-dioxane",C1COCCO1,polar_aprotic_solvent
+3-methylsulfolane,CC1CCS(=O)(=O)C1,polar_aprotic_solvent
+acetylacetone,CC(=O)CC(=O)C,polar_aprotic_solvent
+benzonitrile,C1=CC=C(C=C1)C#N,polar_aprotic_solvent
+cyclohexanone,C1CCC(=O)CC1,polar_aprotic_solvent
+cyclopentanone,C1CCC(=O)C1,polar_aprotic_solvent
+diethyl sulfoxide,CCS(=O)CC,polar_aprotic_solvent
+diethylene glycol dimethyl ether,COCCOCCOC,polar_aprotic_solvent
+dimethyl carbonate,COC(=O)OC,polar_aprotic_solvent
+dimethyl isosorbide,CO[C@@H]1CO[C@H]2[C@@H]1OC[C@@H]2OC,polar_aprotic_solvent
+ethyl lactate,CCOC(=O)C(C)O,polar_aprotic_solvent
+ethyl methyl sulfone,CCS(=O)(=O)C,polar_aprotic_solvent
+ethylene carbonate,C1COC(=O)O1,polar_aprotic_solvent
+gamma-valerolactone,CC1CCC(=O)O1,polar_aprotic_solvent
+hexamethylphosphoramide,CN(C)P(=O)(N(C)C)N(C)C,polar_aprotic_solvent
+methyl ethyl ketone,CCC(=O)C,polar_aprotic_solvent
+methyl phenyl sulfoxide,CS(=O)C1=CC=CC=C1,polar_aprotic_solvent
+"N,N'-dimethylpropyleneurea",CN1CCCN(C1=O)C,polar_aprotic_solvent
+"N,N-diethylformamide",CCN(CC)C=O,polar_aprotic_solvent
+N-ethyl-2-pyrrolidone,CCN1CCCC1=O,polar_aprotic_solvent
+N-formylmorpholine,C1COCCN1C=O,polar_aprotic_solvent
+N-methylacetamide,CC(=O)NC,polar_aprotic_solvent
+N-methylcaprolactam,CN1CCCCCC1=O,polar_aprotic_solvent
+N-methylformamide,CNC=O,polar_aprotic_solvent
+N-vinyl-2-pyrrolidone,C=CN1CCCC1=O,polar_aprotic_solvent
+nitromethane,C[N+](=O)[O-],polar_aprotic_solvent
+propionitrile,CCC#N,polar_aprotic_solvent
+propylene carbonate,CC1COC(=O)O1,polar_aprotic_solvent
+tetraethylene glycol dimethyl ether,COCCOCCOCCOCCOC,polar_aprotic_solvent
+tetramethylene sulfoxide,C1CCS(=O)C1,polar_aprotic_solvent
+triethylene glycol dimethyl ether,COCCOCCOCCOC,polar_aprotic_solvent
+1-hexanol,CCCCCCO,polar_protic_solvent
+1-methoxy-2-propanol,CC(COC)O,polar_protic_solvent
+1-pentanol,CCCCCO,polar_protic_solvent
+1-propanol,CCCO,polar_protic_solvent
+2-(2-butoxyethoxy)ethanol,CCCCOCCOCCO,polar_protic_solvent
+2-(2-ethoxyethoxy)ethanol,CCOCCOCCO,polar_protic_solvent
+2-(2-methoxyethoxy)ethanol,COCCOCCO,polar_protic_solvent
+2-butanol,CCC(C)O,polar_protic_solvent
+2-ethoxyethanol,CCOCCO,polar_protic_solvent
+2-phenoxyethanol,C1=CC=C(C=C1)OCCO,polar_protic_solvent
+2-pyrrolidone,C1CC(=O)NC1,polar_protic_solvent
+acetamide,CC(=O)N,polar_protic_solvent
+benzyl alcohol,C1=CC=C(C=C1)CO,polar_protic_solvent
+diethanolamine,C(CO)NCCO,polar_protic_solvent
+ethanolamine,C(CO)N,polar_protic_solvent
+furfuryl alcohol,C1=COC(=C1)CO,polar_protic_solvent
+hexafluoroisopropanol,C(C(F)(F)F)(C(F)(F)F)O,polar_protic_solvent
+N-methylethanolamine,CNCCO,polar_protic_solvent
+tert-butanol,CC(C)(C)O,polar_protic_solvent
+tetrahydrofurfuryl alcohol,C1CC(OC1)CO,polar_protic_solvent
+triethanolamine,C(CO)N(CCO)CCO,polar_protic_solvent
+(3-aminopropyl)triethoxysilane,CCO[Si](CCCN)(OCC)OCC,reductant_crosslinker_other
+(3-mercaptopropyl)trimethoxysilane,CO[Si](CCCS)(OC)OC,reductant_crosslinker_other
+"1,2,4-triazole",C1=NC=NN1,reductant_crosslinker_other
+1-butylimidazole,CCCCN1C=CN=C1,reductant_crosslinker_other
+2-mercaptoethanol,C(CS)O,reductant_crosslinker_other
+benzimidazole,C1=CC=C2C(=C1)NC=N2,reductant_crosslinker_other
+caffeine,CN1C=NC2=C1C(=O)N(C(=O)N2C)C,reductant_crosslinker_other
+dopamine hydrochloride,C1=CC(=C(C=C1CCN)O)O.Cl,reductant_crosslinker_other
+ethylene glycol diglycidyl ether,C1C(O1)COCCOCC2CO2,reductant_crosslinker_other
+glutaraldehyde,C(CC=O)CC=O,reductant_crosslinker_other
+glutathione,C(CC(=O)N[C@@H](CS)C(=O)NCC(=O)O)[C@@H](C(=O)O)N,reductant_crosslinker_other
+glycerol diglycidyl ether,C1C(O1)COCC(CO)OCC2CO2,reductant_crosslinker_other
+L-cysteine,C([C@@H](C(=O)O)N)S,reductant_crosslinker_other
+methyl salicylate,COC(=O)C1=CC=CC=C1O,reductant_crosslinker_other
+pyrazole,C1=CNN=C1,reductant_crosslinker_other
+sodium sulfide,[Na+].[Na+].[SH-],reductant_crosslinker_other
+tetraethyl orthosilicate,CCO[Si](OCC)(OCC)OCC,reductant_crosslinker_other
+thiourea,C(=S)(N)N,reductant_crosslinker_other
+aluminum chloride,[Al](Cl)(Cl)Cl,simple_salt
+ammonium acetate,CC(=O)[O-].[NH4+],simple_salt
+ammonium chloride,[NH4+].[Cl-],simple_salt
+ammonium formate,C(=O)[O-].[NH4+],simple_salt
+ammonium sulfate,[NH4+].[NH4+].[O-]S(=O)(=O)[O-],simple_salt
+calcium chloride,[Cl-].[Cl-].[Ca+2],simple_salt
+cesium bromide,[Br-].[Cs+],simple_salt
+cesium carbonate,C(=O)([O-])[O-].[Cs+].[Cs+],simple_salt
+cesium iodide,[I-].[Cs+],simple_salt
+copper(II) acetate,CC(=O)[O-].CC(=O)[O-].[Cu+2],simple_salt
+copper(II) trifluoromethanesulfonate,C(F)(F)(F)S(=O)(=O)[O-].C(F)(F)(F)S(=O)(=O)[O-].[Cu+2],simple_salt
+guanidine hydrochloride,C(=N)(N)N.Cl,simple_salt
+guanidinium thiocyanate,C(#N)S.C(=N)(N)N,simple_salt
+iron(II) chloride,Cl[Fe]Cl,simple_salt
+iron(III) nitrate,[N+](=O)([O-])[O-].[N+](=O)([O-])[O-].[N+](=O)([O-])[O-].[Fe+3],simple_salt
+lithium acetate,[Li+].CC(=O)[O-],simple_salt
+lithium hexafluorophosphate,[Li+].F[P-](F)(F)(F)(F)F,simple_salt
+lithium iodide,[Li+].[I-],simple_salt
+lithium tetrafluoroborate,[Li+].[B-](F)(F)(F)F,simple_salt
+lithium trifluoromethanesulfonate,[Li+].C(F)(F)(F)S(=O)(=O)[O-],simple_salt
+magnesium sulfate,[O-]S(=O)(=O)[O-].[Mg+2],simple_salt
+potassium acetate,CC(=O)[O-].[K+],simple_salt
+potassium bis(trifluoromethylsulfonyl)imide,C(F)(F)(F)S(=O)(=O)[N-]S(=O)(=O)C(F)(F)F.[K+],simple_salt
+potassium bromide,[K+].[Br-],simple_salt
+potassium hexafluorophosphate,F[P-](F)(F)(F)(F)F.[K+],simple_salt
+potassium iodide,[K+].[I-],simple_salt
+silver trifluoromethanesulfonate,C(F)(F)(F)S(=O)(=O)[O-].[Ag+],simple_salt
+sodium acetate,CC(=O)[O-].[Na+],simple_salt
+sodium bromide,[Na+].[Br-],simple_salt
+sodium dithionite,[O-]S(=O)S(=O)[O-].[Na+].[Na+],simple_salt
+sodium formate,C(=O)[O-].[Na+],simple_salt
+sodium hexafluorophosphate,F[P-](F)(F)(F)(F)F.[Na+],simple_salt
+sodium nitrate,[N+](=O)([O-])[O-].[Na+],simple_salt
+sodium tetrafluoroborate,[B-](F)(F)(F)F.[Na+],simple_salt
+sodium thiosulfate,[O-]S(=O)(=S)[O-].[Na+].[Na+],simple_salt
+sodium trifluoromethanesulfonate,C(F)(F)(F)S(=O)(=O)[O-].[Na+],simple_salt
+tetrabutylammonium bromide,CCCC[N+](CCCC)(CCCC)CCCC.[Br-],simple_salt
+tetraethylammonium bromide,CC[N+](CC)(CC)CC.[Br-],simple_salt
+tetramethylammonium hydroxide,C[N+](C)(C)C.[OH-],simple_salt
+zinc acetate,CC(=O)[O-].CC(=O)[O-].[Zn+2],simple_salt
+zinc sulfate,[O-]S(=O)(=O)[O-].[Zn+2],simple_salt
+D-fructose,C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O,sugar_or_sugar_alcohol
+isomalt,C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)OC[C@H]([C@H]([C@@H](C(CO)O)O)O)O)O)O)O)O,sugar_or_sugar_alcohol
+isosorbide,C1[C@H]([C@@H]2[C@H](O1)[C@H](CO2)O)O,sugar_or_sugar_alcohol
+maltose,C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@@H]2[C@H](OC([C@@H]([C@H]2O)O)O)CO)O)O)O)O,sugar_or_sugar_alcohol
+myo-inositol,C1(C(C(C(C(C1O)O)O)O)O)O,sugar_or_sugar_alcohol
+sucrose,C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O,sugar_or_sugar_alcohol
+trehalose,C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O)O)O)O)O,sugar_or_sugar_alcohol
+"1,5-naphthalenedisulfonic acid",C1=CC2=C(C=CC=C2S(=O)(=O)O)C(=C1)S(=O)(=O)O,sulfonic_acid
+1-butanesulfonic acid,CCCCS(=O)(=O)O,sulfonic_acid
+1-naphthalenesulfonic acid,C1=CC=C2C(=C1)C=CC=C2S(=O)(=O)O,sulfonic_acid
+1-octanesulfonic acid,CCCCCCCCS(=O)(=O)O,sulfonic_acid
+1-propanesulfonic acid,CCCS(=O)(=O)O,sulfonic_acid
+2-acrylamido-2-methyl-1-propanesulfonic acid,CC(C)(CS(=O)(=O)O)NC(=O)C=C,sulfonic_acid
+2-mesitylenesulfonic acid,CC1=CC(=C(C(=C1)C)S(=O)(=O)O)C,sulfonic_acid
+4-styrenesulfonic acid,C=CC1=CC=C(C=C1)S(=O)(=O)O,sulfonic_acid
+5-sulfosalicylic acid,C1=CC(=C(C=C1S(=O)(=O)O)C(=O)O)O,sulfonic_acid
+"benzene-1,3-disulfonic acid",C1=CC(=CC(=C1)S(=O)(=O)O)S(=O)(=O)O,sulfonic_acid
+ethanesulfonic acid,CCS(=O)(=O)O,sulfonic_acid
+HEPES,C1CN(CCN1CCO)CCS(=O)(=O)O,sulfonic_acid
+isethionic acid,C(CS(=O)(=O)O)O,sulfonic_acid
+MES,C1COCCN1CCS(=O)(=O)O,sulfonic_acid
+methanedisulfonic acid,C(S(=O)(=O)O)S(=O)(=O)O,sulfonic_acid
+nonafluorobutanesulfonic acid,C(C(C(F)(F)S(=O)(=O)O)(F)F)(C(F)(F)F)(F)F,sulfonic_acid
+p-xylene-2-sulfonic acid,CC1=CC(=C(C=C1)C)S(=O)(=O)O,sulfonic_acid
+sulfamic acid,NS(=O)(=O)O,sulfonic_acid
+sulfanilic acid,C1=CC(=CC=C1N)S(=O)(=O)O,sulfonic_acid
+taurine,C(CS(=O)(=O)O)N,sulfonic_acid
+"2,4,7,9-tetramethyl-5-decyne-4,7-diol",CC(C)CC(C)(C#CC(C)(CC(C)C)O)O,surfactant
+3-(1-pyridinio)-1-propanesulfonate,C1=CC=[N+](C=C1)CCCS(=O)(=O)[O-],surfactant
+"3-(N,N-dimethylmyristylammonio)propanesulfonate",CCCCCCCCCCCCCC[N+](C)(C)CCCS(=O)(=O)[O-],surfactant
+cetylpyridinium chloride,CCCCCCCCCCCCCCCC[N+]1=CC=CC=C1.[Cl-],surfactant
+CHAPS,C[C@H](CCC(=O)NCCC[N+](C)(C)CCCS(=O)(=O)[O-])[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)O)C,surfactant
+didodecyldimethylammonium bromide,CCCCCCCCCCCC[N+](C)(C)CCCCCCCCCCCC.[Br-],surfactant
+docusate sodium,CCCCC(CC)COC(=O)CC(C(=O)OCC(CC)CCCC)S(=O)(=O)[O-].[Na+],surfactant
+dodecyltrimethylammonium bromide,CCCCCCCCCCCC[N+](C)(C)C.[Br-],surfactant
+lauryl betaine,CCCCCCCCCCCC[N+](C)(C)CC(=O)[O-],surfactant
+n-dodecyl-beta-D-maltoside,CCCCCCCCCCCCO[C@H]1[C@@H]([C@H]([C@@H]([C@H](O1)CO)O[C@@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O)O)O,surfactant
+n-octyl-beta-D-glucopyranoside,CCCCCCCCO[C@H]1[C@@H]([C@H]([C@@H]([C@H](O1)CO)O)O)O,surfactant
+sodium 1-octanesulfonate,CCCCCCCCS(=O)(=O)[O-].[Na+],surfactant
+sodium cholate,C[C@H](CCC(=O)[O-])[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)O)C.[Na+],surfactant
+sodium decyl sulfate,CCCCCCCCCCOS(=O)(=O)[O-].[Na+],surfactant
+sodium deoxycholate,C[C@H](CCC(=O)[O-])[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2CC[C@H]4[C@@]3(CC[C@H](C4)O)C)O)C.[Na+],surfactant
+sodium laurate,CCCCCCCCCCCC(=O)[O-].[Na+],surfactant
+sodium N-lauroylsarcosinate,CCCCCCCCCCCC(=O)N(C)CC(=O)[O-].[Na+],surfactant
+sodium oleate,CCCCCCCC/C=C\CCCCCCCC(=O)[O-].[Na+],surfactant
+sodium tetradecyl sulfate,CCCCC(CC)CCC(CC(C)C)OS(=O)(=O)[O-].[Na+],surfactant
+sorbitan monooleate,CCCCCCCC/C=C\CCCCCCCC(=O)OC[C@H]([C@@H]1[C@@H]([C@H](CO1)O)O)O,surfactant
+tetradecyltrimethylammonium bromide,CCCCCCCCCCCCCC[N+](C)(C)C.[Br-],surfactant

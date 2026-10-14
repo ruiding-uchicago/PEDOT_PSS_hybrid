@@ -125,6 +125,47 @@ are not in the training chemistry are an extrapolation in descriptor space and t
 In the spin-coating example (5 vol% additive), 232 molecules outside the training data receive 227 distinct predictions between 0.3 and 621 S/cm (DMSO 559 S/cm, no additive 0.8 S/cm); glycols and polyols rank highest (median 256 S/cm), followed by sulfonic acids and polar aprotic solvents (about 190 S/cm), and sugars and sugar alcohols, carboxylic and other weak acids and simple salts rank lowest (24-77 S/cm).
 Use such predictions to rank candidates, and confirm with experiments.
 
+## Searching the input space
+
+The inputs span a practically unbounded design space: any molecule as additive or post-treatment chemical (PubChem
+lists over 100 million compounds), its dose or concentration, treatment temperature and time, grade, substrate,
+deposition method and thermal history. Even a coarse grid (one additive from 10⁴ candidate molecules at 10 doses, one
+post-treatment chemical from 10⁴ at 10 concentrations, 10 temperatures and 10 times, and the listed grades,
+substrates and deposition methods with 10 × 10 anneal conditions) holds about 10¹⁷ recipes; with PubChem-scale
+chemistry it is about 10²¹.
+
+Measured throughput (laptop CPU, one process): about 40 recipes/s for batches in canonical wording
+(`predict_many(..., canonical=False)`), about 10 recipes/s with the default synonym rewrite, and about 0.3 s for one
+call. Processes scale linearly (about 2 GB of memory each; more threads do not help). Even with 8 processes
+(about 300 recipes/s), 10⁹ recipes take about 40 days and 10¹⁷ recipes about 10 million years.
+
+Brute-force enumeration is therefore not an option. Use the surrogate as the objective of a guided search
+(Bayesian optimization, evolutionary or generative molecular design, or an LLM agent that proposes candidates),
+confirm the best candidates with experiments and feed the measurements back. Predictions are most reliable near the
+training chemistry; molecules far from it are extrapolations in descriptor space (the result's `"notes"` flag every
+molecule given by structure).
+
+[`examples/screen_candidates.py`](examples/screen_candidates.py) screens the 232 out-of-corpus molecules of
+[`examples/candidate_molecules.csv`](examples/candidate_molecules.csv) at four doses, ranks them and prints the
+brute-force estimate:
+
+```text
+928 recipes (232 molecules x 4 doses) in 22.3 s = 42 recipes/s in one process
+Top 10 candidates
+     639.6 S/cm  ethyl methyl sulfone at 10 vol%
+     620.6 S/cm  ethyl methyl sulfone at 5 vol%
+     ...
+     468.7 S/cm  propylene glycol at 10 vol%
+     462.6 S/cm  N-methylacetamide at 5 vol%
+```
+
+Throughput tips:
+
+- Batch with `predict_many`; the model is loaded once per process.
+- Rewrite a base recipe once with `pedot_pss.normalize()`, vary listed names, numbers and SMILES, and pass
+  `canonical=False` (about 4× faster; predictions are identical for inputs already in canonical wording).
+- For more throughput run several processes, about 2 GB of memory each.
+
 ## For agent developers
 
 The package is meant to be called as a black-box tool inside optimization or agent loops.
@@ -136,9 +177,12 @@ The package is meant to be called as a black-box tool inside optimization or age
   be used directly as the parameter schema of an LLM tool/function definition.
 - **Search space:** vary the numbers (doses, temperatures, times, speeds), the additives (any listed molecule or any
   SMILES) and the post-treatment chemical; `pedot_pss.vocabulary()` lists the fixed options.
-- **Speed (laptop CPU):** loading the model takes a few seconds (the very first import after installation takes
-  about 30 s while Python compiles the package); a batch of 19 recipes then takes about 2 s. No GPU and no
-  PyTorch are needed.
+- **Speed (laptop CPU):** importing the package and loading the model take about 15 s (the very first import
+  after installation takes about 30 s more while Python compiles the package); one prediction then takes about
+  0.3 s and batches run at about 10 recipes/s, or about 40 recipes/s with `canonical=False` (see "Searching the
+  input space"). No GPU and no PyTorch are needed.
+- **Search strategy:** the design space is far too large to enumerate; drive the tool with a guided search
+  (Bayesian optimization, evolutionary search, an agent) rather than a grid.
 - **Deterministic:** the same input always returns the same prediction.
 - **Errors:** unknown field names, outcome or provenance fields (DOI, paper IDs, measured conductivity, SD,
   coverage, ...), malformed numbers, units or SMILES, and unsupported process-stage kinds raise
