@@ -1,7 +1,7 @@
 {
-  "status": "released_v0.1.2_code_with_v0.1.0_model_asset",
+  "status": "v0.2.0_verified",
   "trained_release_model_present": true,
-  "architecture": "original_source_free_global_fallback_kernel_six_late_heads_supported_physics_and_P_plus_polybot_physics_platform_two_state_gem_dewet_refit_on_cleaned_population_plus_joint_late_combiner_and_physics_guards",
+  "architecture": "physics+ML hybrid M/P (GEM + DomainTransport, acid/salt/PEO/SWCNT/DAE branches with training-support guards, thermal-clock P, Polybot two-state platform branch) on an open cheminformatics/material representation; global-kernel late layer",
   "complete_historical_M_graph_or_old_weights_unchanged": false,
   "input_contract_fields": 24,
   "allowed_extra_scalars": 56,
@@ -12,17 +12,10 @@
     "M": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9602206723440294,
-        "rmse_log10": 0.36313818074689674,
-        "mae_log10": 0.22456261493940533,
-        "within_factor_10": 0.9753363228699552
-      },
-      "literature": {
-        "n": 6169,
-        "r2_log10": 0.961335560329683,
-        "rmse_log10": 0.35849746607722316,
-        "mae_log10": 0.2224762994532528,
-        "within_factor_10": 0.9766574809531529
+        "r2_log10": 0.9599371967774911,
+        "rmse_log10": 0.36442978198636844,
+        "mae_log10": 0.21367655687285583,
+        "within_factor_10": 0.978539397821909
       },
       "polybot": {
         "n": 75,
@@ -30,22 +23,22 @@
         "rmse_log10": 0.6382224913548608,
         "mae_log10": 0.39616901806040206,
         "within_factor_10": 0.8666666666666667
+      },
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.9610494130084327,
+        "rmse_log10": 0.3598216025530179,
+        "mae_log10": 0.21145789346078486,
+        "within_factor_10": 0.9798994974874372
       }
     },
     "P": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9599573709028147,
-        "rmse_log10": 0.3643380138462291,
-        "mae_log10": 0.22610483031316356,
-        "within_factor_10": 0.9750160153747598
-      },
-      "literature": {
-        "n": 6169,
-        "r2_log10": 0.9610697772747093,
-        "rmse_log10": 0.35972752873424,
-        "mae_log10": 0.2240372644060404,
-        "within_factor_10": 0.9763332792997245
+        "r2_log10": 0.9598004955949436,
+        "rmse_log10": 0.36505100109256156,
+        "mae_log10": 0.21498970361225034,
+        "within_factor_10": 0.978539397821909
       },
       "polybot": {
         "n": 75,
@@ -53,46 +46,29 @@
         "rmse_log10": 0.6382224913548608,
         "mae_log10": 0.39616901806040206,
         "within_factor_10": 0.8666666666666667
-      }
-    },
-    "all_6780_including_removed": {
-      "M": {
-        "n": 6780,
-        "r2_log10": 0.8982414969096909,
-        "rmse_log10": 0.6133823969165547,
-        "mae_log10": 0.3293120501504971,
-        "within_factor_10": 0.9196165191740413
       },
-      "P": {
-        "n": 6780,
-        "r2_log10": 0.8980836397580606,
-        "rmse_log10": 0.6138579801481143,
-        "mae_log10": 0.3307591279303036,
-        "within_factor_10": 0.9194690265486726
+      "literature": {
+        "n": 6169,
+        "r2_log10": 0.9609114234184466,
+        "rmse_log10": 0.3604584060257653,
+        "mae_log10": 0.2127870048630833,
+        "within_factor_10": 0.9798994974874372
       }
-    },
-    "nested_leave_one_fold_out": {
-      "M_r2": 0.95992,
-      "P_r2": 0.95974
-    },
-    "polybot_selection_aware_nested_r2": 0.730246862635458,
-    "polybot_final_fit_r2_training_not_heldout": 0.9618895355368487
+    }
   },
-  "next_required": "Owner approval, then install the stack-1013 export as the package model (run_pipeline.py --install-into-package), commit/push, publish the release asset.",
+  "next_required": "Publish: commit/push v0.2.0 and upload model.joblib as the v0.2.0 release asset.",
   "input_version": "experiment-input-v3-text-clean-1012",
   "standalone_inference_status": "passed_fresh_venv_macOS_python3.12_without_torch",
   "model_artifact": {
     "filename": "model.joblib",
-    "bytes": 122696771,
-    "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.1.0/model.joblib",
-    "model_version": "original-structure-experiment-only-MP-1012+refit-keep_v2_cap08-1013+m-stack-joint-late-combiner-infer-v1-1013",
+    "bytes": 171885530,
+    "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.2.0/model.joblib",
+    "model_version": "original-structure-experiment-only-MP-1012+canonical-corpus-keep_v2_cap08+open-chemistry-descriptors-v1-1014",
     "input_version": "experiment-input-v3-text-clean-1012",
     "default_output": "P",
     "distribution": "Complete fitted state in the pinned GitHub release"
   },
   "point_predictions_included": false,
-  "polybot_selection_aware_nested_r2_log10": 0.730246862635458,
-  "previous_platform_branch_polybot_r2_log10": 0.3372910076423177,
   "standalone_inference_parity_max_abs_log10": {
     "M_batch_vs_private_batch_t1_all5cols": 2.282618538629322e-13,
     "M_single_vs_private_single_t1_all5cols": 4.996003610813204e-16,
@@ -109,20 +85,47 @@
     "public_predict_many_vs_private_P_batch_t1": 2.05613304160579e-13,
     "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
   },
-  "encoder_runtime": "Not used at prediction: the joint late combiner gives the MatBERT head weight 0, so stages after the last weighted one (fullfeature, char, matbert) are skipped; predictions are bitwise identical to v0.1.0 and need no PyTorch, no MatBERT download and no encoder process.",
-  "package_version": "0.1.2",
-  "inference_change_v0.1.1": {
-    "skipped_late_stages": [
-      "fullfeature",
-      "char",
-      "matbert"
-    ],
-    "reason": "combiner weight 0 and no later weighted stage reads them",
-    "verification": "6780 rows: single-thread old vs new bitwise identical (multi-thread runs differ from themselves by 2.2e-16); 19 parity recipes in a fresh venv without torch: max |diff| 0.0 vs v0.1.0"
+  "package_version": "0.2.0",
+  "configuration_selection": "Representation chosen among 12 full-hybrid variants on these folds (paired bootstrap 95% interval of the change vs the identity control within [-0.002, +0.003]); guards and P correction as in earlier versions; final parsing corrections and datasheet-checked material values not chosen by score",
+  "polybot_final_fit_r2_log10_training_not_heldout": 0.9618895355368487,
+  "inputs_v0.2.0": {
+    "default_canonical_wording": "predict/predict_many/normalize rewrite polymer_grade, deposition_method, substrate, specimen_geometry, measurement_method and additive names to one canonical wording per option with pedot_pss._canonical, the function that rewrote the training corpus; a rewrite is made only where the model's parsers read identical information",
+    "strict_mode": "rejects options outside pedot_pss.vocabulary()",
+    "canonical_false": "uses all text exactly as written",
+    "representation": "text enters only through the rule-based parser: fixed categories (one-hot), additive identities with doses, RDKit descriptors of the 18 table molecules, process numbers"
   },
-  "input_options_v0.1.2": {
-    "strict_mode": "predict(..., strict=True) maps polymer_grade, deposition_method, substrate, specimen_geometry, measurement_method and additive names to one canonical wording per option (pedot_pss.vocabulary()); synonyms give identical predictions; unrecognised options are rejected",
-    "additive_smiles": "optional list aligned with additive_names; listed molecules resolve to their chemical (identical predictions); unlisted molecules enter through five RDKit descriptors as an extrapolation; needs the [chem] extra",
-    "default_mode_unchanged": "19 parity recipes max |diff| 0.0 vs v0.1.0 (fresh venvs with and without RDKit)"
+  "verification_v0.2.0": {
+    "label": "open-v020",
+    "passed": true,
+    "unit_tests": "Ran 38 tests in 4.544s",
+    "stress": {
+      "default": {
+        "runs": 5,
+        "completed": 5,
+        "timeouts": 0,
+        "errors": 0,
+        "max_abs_diff_vs_private": 2.05613304160579e-13
+      },
+      "torch_first": {
+        "runs": 2,
+        "completed": 2,
+        "timeouts": 0,
+        "errors": 0,
+        "max_abs_diff_vs_private": 2.05613304160579e-13
+      },
+      "inprocess_1thread": {
+        "runs": 2,
+        "completed": 2,
+        "timeouts": 0,
+        "errors": 0,
+        "max_abs_diff_vs_private": 2.05613304160579e-13
+      },
+      "distinct_prediction_vectors_all_completed_runs": 1,
+      "max_abs_spread_between_runs": 0.0
+    }
+  },
+  "representation": {
+    "chemistry": "additives and post-treatment chemicals as cheminformatics descriptors (35 RDKit descriptors and functional-group counts, structure classes, dose); grade and substrate as material descriptors; no name identities, no text embedding",
+    "features": 948
   }
 }

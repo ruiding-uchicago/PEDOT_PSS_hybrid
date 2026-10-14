@@ -1,5 +1,5 @@
 {
-  "version": "original-structure-experiment-only-MP-1012+refit-keep_v2_cap08-1013+m-stack-joint-late-combiner-infer-v1-1013",
+  "version": "original-structure-experiment-only-MP-1012+canonical-corpus-keep_v2_cap08+open-chemistry-descriptors-v1-1014",
   "input_version": "experiment-input-v3-text-clean-1012",
   "status": "complete_sealed_five_fold_cleaned_population",
   "n": 6244,
@@ -10,10 +10,10 @@
     "M": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9602206723440294,
-        "rmse_log10": 0.36313818074689674,
-        "mae_log10": 0.22456261493940533,
-        "within_factor_10": 0.9753363228699552
+        "r2_log10": 0.9599371967774911,
+        "rmse_log10": 0.36442978198636844,
+        "mae_log10": 0.21367655687285583,
+        "within_factor_10": 0.978539397821909
       },
       "polybot": {
         "n": 75,
@@ -24,19 +24,19 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.961335560329683,
-        "rmse_log10": 0.35849746607722316,
-        "mae_log10": 0.2224762994532528,
-        "within_factor_10": 0.9766574809531529
+        "r2_log10": 0.9610494130084327,
+        "rmse_log10": 0.3598216025530179,
+        "mae_log10": 0.21145789346078486,
+        "within_factor_10": 0.9798994974874372
       }
     },
     "P": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9599573709028147,
-        "rmse_log10": 0.3643380138462291,
-        "mae_log10": 0.22610483031316356,
-        "within_factor_10": 0.9750160153747598
+        "r2_log10": 0.9598004955949436,
+        "rmse_log10": 0.36505100109256156,
+        "mae_log10": 0.21498970361225034,
+        "within_factor_10": 0.978539397821909
       },
       "polybot": {
         "n": 75,
@@ -47,36 +47,64 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.9610697772747093,
-        "rmse_log10": 0.35972752873424,
-        "mae_log10": 0.2240372644060404,
-        "within_factor_10": 0.9763332792997245
+        "r2_log10": 0.9609114234184466,
+        "rmse_log10": 0.3604584060257653,
+        "mae_log10": 0.2127870048630833,
+        "within_factor_10": 0.9798994974874372
       }
     }
   },
   "all_6780_including_removed": {
     "M": {
       "n": 6780,
-      "r2_log10": 0.8982414969096909,
-      "rmse_log10": 0.6133823969165547,
-      "mae_log10": 0.3293120501504971,
-      "within_factor_10": 0.9196165191740413
+      "r2_log10": 0.9047522625135912,
+      "rmse_log10": 0.593435178601083,
+      "mae_log10": 0.3080111238505342,
+      "within_factor_10": 0.93023598820059
     },
     "P": {
       "n": 6780,
-      "r2_log10": 0.8980836397580606,
-      "rmse_log10": 0.6138579801481143,
-      "mae_log10": 0.3307591279303036,
-      "within_factor_10": 0.9194690265486726
+      "r2_log10": 0.9047709149485801,
+      "rmse_log10": 0.5933770693307352,
+      "mae_log10": 0.3091101879563722,
+      "within_factor_10": 0.93023598820059
     }
   },
-  "nested_leave_one_fold_out_r2": {
-    "M": 0.95992,
-    "P": 0.95974
-  },
+  "configuration_selection": "Representation chosen among 12 full-hybrid variants on these folds (paired bootstrap 95% interval of the change vs the identity control within [-0.002, +0.003]); guards and P correction as in earlier versions; final parsing corrections and datasheet-checked material values not chosen by score",
   "polybot_selection_aware_nested_r2_log10": 0.730246862635458,
   "polybot_final_fit_r2_log10_training_not_heldout": 0.9618895355368487,
+  "late_layer": {
+    "stages_evaluated": [],
+    "global_kernel_weight_full_training": 0.0,
+    "global_kernel_weight_by_fold": [
+      0.0462,
+      0.0129,
+      0.3161,
+      0.0,
+      0.1849
+    ],
+    "note": "non-negative least squares on inner-fold deltas, x0.5; text-reading heads not used"
+  },
   "target_units": "log10(S/cm)",
-  "scope": "Fixed random-row outer five folds on the keep_v2_cap08 population (536 literature rows removed by a rule that used OOF residuals plus extraction evidence; removed rows excluded from training and scoring). Combiner/guards/Polybot branch selected on these folds (nested estimates reported). Not a wet-lab/control-range extrapolation test.",
-  "corpus_or_point_predictions_included": false
+  "scope": "Fixed random-row outer five folds on the keep_v2_cap08 population (536 literature rows removed by a rule that used OOF residuals plus extraction evidence; removed rows excluded from training and scoring). Guards and the Polybot branch were selected on these folds for v0.1.x (see configuration_selection). Not a wet-lab/control-range extrapolation test.",
+  "corpus_or_point_predictions_included": false,
+  "representation": {
+    "chemistry": "additives and post-treatment chemicals as cheminformatics descriptors (35 RDKit descriptors and functional-group counts, structure classes, dose); grade and substrate as material descriptors; no name identities, no text embedding",
+    "features": 948
+  },
+  "unseen_chemistry_grouped_cv_r2_log10": {
+    "additives": {
+      "descriptors": 0.4827,
+      "identities": 0.4159
+    },
+    "post_treatment_chemicals": {
+      "descriptors": 0.2142,
+      "identities": 0.2043
+    },
+    "grades": {
+      "descriptors": 0.2504,
+      "identities": 0.234
+    },
+    "note": "representation study on the same folds (text-free M), before the final parsing corrections"
+  }
 }

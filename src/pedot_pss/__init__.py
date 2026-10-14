@@ -17,37 +17,47 @@ from ._vendor.clean_inputs import INPUT_FIELDS, INPUT_VERSION, canonicalize
 from ._validation import validate, require_condition, canonical_extra_units
 from ._assets import setup_encoder, setup_model
 from ._encoder import shutdown as close_encoder
-from ._categories import canonical_categories, vocabulary
-from ._chemistry import registered, resolve_additives
+from ._canonical import canonical_experiment
+from ._categories import unlisted_options, vocabulary
+from ._chemistry import merge, registered, resolve_listed_aliases, resolve_structures
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 _DEFAULT_MODEL = Path(__file__).with_name("models") / "model.joblib"
 _MODELS = {}
 _LOAD_LOCK = threading.RLock()
 
 
-def _prepare(experiment, strict):
+def _prepare(experiment, strict, canonical=True):
     """(canonical experiment, unlisted molecules to register, notes) for one input dictionary."""
     if not isinstance(experiment, Mapping):
         raise TypeError("An experiment must be a dictionary of experimental conditions")
-    experiment, molecules, notes = resolve_additives(experiment)
-    if strict:
-        tokens = {pattern[2:-2] for pattern, _ in molecules.values()}
-        experiment, more = canonical_categories(experiment, registered_names=tokens)
-        notes = notes + more
+    experiment, molecules, notes = resolve_structures(experiment)
     validate(experiment)
-    clean = canonicalize(canonical_extra_units(experiment))
+    experiment = canonical_extra_units(experiment)
+    if canonical or strict:
+        experiment, rewrites = canonical_experiment(experiment)
+        molecules = resolve_listed_aliases(experiment, molecules)
+        unlisted = unlisted_options(experiment, registered_names=set(molecules["names"]))
+        if strict and unlisted:
+            raise ValueError("Options outside the fixed vocabulary (pedot_pss.vocabulary()): "
+                             + "; ".join(f"{field}={value!r}" for field, value in unlisted)
+                             + ". Use a listed wording, or give an unlisted molecule by SMILES (additive_smiles).")
+        notes = notes + rewrites + [f"{field}: {value!r} is not a listed option; used as written" for field, value in unlisted]
+    clean = canonicalize(experiment)
     require_condition(clean)
     return clean, molecules, notes
 
 
-def normalize(experiment, *, strict=False):
+def normalize(experiment, *, canonical=True, strict=False):
     """Validate public field names and normalize optional experimental inputs.
 
-    strict=True rewrites the categorical fields and listed additive names to their canonical wording
-    (see vocabulary()) and rejects options the model does not recognise.
+    canonical=True (default) rewrites the categorical fields and additive names to one canonical wording per option
+    (the rewrite the training corpus received; see vocabulary()), so synonyms give identical predictions. A rewrite
+    is made only if the model's parsers read exactly the same information from it; options outside the vocabulary
+    are kept as written. strict=True also rejects options outside the vocabulary. canonical=False uses the text
+    exactly as written.
     """
-    return _prepare(experiment, strict)[0]
+    return _prepare(experiment, strict, canonical)[0]
 
 
 @contextmanager
@@ -58,8 +68,9 @@ def _trained_module_aliases():
     then retain their bundled classes; existing caller modules are restored.
     No private project directory is placed on sys.path.
     """
+    # chem_descriptors needs RDKit and is imported only for molecules given by SMILES; trained files never name it.
     aliases = {path.stem: path.stem for path in Path(__file__).with_name("_vendor").glob("*.py")
-               if path.stem != "__init__"}
+               if path.stem not in ("__init__", "chem_descriptors")}
     aliases["_hybrid_expanded_gem_physics"] = "gem_physics"
     prior = {name: sys.modules.get(name) for name in aliases}
     try:
@@ -112,6 +123,18 @@ def _fix_prediction_threads(model):
     return changed
 
 
+def _install_representation(model):
+    """Install the open chemistry representation a model was trained with (descriptors instead of identities).
+
+    The transform is part of the model: the feature families of the base learners and the scientific view of the
+    global kernel are built through it, exactly as during training. Models without a stored spec are unchanged.
+    """
+    spec = (getattr(model, "info", None) or {}).get("openrep_spec")
+    if spec:
+        from ._vendor import openrep
+        openrep.install(openrep.spec_from_payload(spec))
+
+
 def load_model(model_path=None):
     """Load the complete bundled trained model once per process."""
     configured = model_path or os.environ.get("PEDOT_PSS_MODEL")
@@ -132,24 +155,25 @@ def load_model(model_path=None):
             if version != INPUT_VERSION:
                 raise ValueError("The trained model does not match this experimental input version")
             _fix_prediction_threads(model)
+            _install_representation(model)
             _MODELS[path] = model
         return _MODELS[path]
 
 
-def predict_many(experiments, *, model_path=None, strict=False):
+def predict_many(experiments, *, model_path=None, canonical=True, strict=False):
     """Predict multiple experimental recipes with one loaded model.
 
     Returns dictionaries containing conductivity_S_cm and log10_conductivity_S_cm, plus "notes" when an
-    input was rewritten (strict mode) or an additive was given by SMILES. Missing fields become explicit
-    nulls internally.
+    input was rewritten to its canonical wording, an option is not in vocabulary(), or an additive was given
+    by SMILES. Missing fields become explicit nulls internally.
     """
-    prepared = [_prepare(experiment, strict) for experiment in experiments]
+    prepared = [_prepare(experiment, strict, canonical) for experiment in experiments]
     if not prepared:
         return []
     clean = [item[0] for item in prepared]
-    molecules = {}
+    molecules = {"names": {}, "post": {}}
     for item in prepared:
-        molecules.update(item[1])
+        merge(molecules, item[1])
     model = load_model(model_path)
     with registered(molecules):
         predictions = np.asarray(model.predict(clean), dtype=float)
@@ -168,9 +192,9 @@ def predict_many(experiments, *, model_path=None, strict=False):
     return result
 
 
-def predict(experiment, *, model_path=None, strict=False):
+def predict(experiment, *, model_path=None, canonical=True, strict=False):
     """Predict conductivity from one dictionary of planned experimental inputs."""
-    return predict_many([experiment], model_path=model_path, strict=strict)[0]
+    return predict_many([experiment], model_path=model_path, canonical=canonical, strict=strict)[0]
 
 
 __all__ = ["predict", "predict_many", "normalize", "vocabulary", "load_model", "setup_encoder", "setup_model",

@@ -1,14 +1,16 @@
-"""Fixed-option (one-hot) wording for the categorical fields.
+"""Fixed-option wording for the categorical fields; listed chemistry for additive names.
 
-The model parses these text fields into fixed categories with its own rules. ``strict`` mode runs that
-same parser, then replaces the text by one canonical wording per category, so synonyms and rephrasings
-of the same option give identical predictions. Text that maps to no category is rejected with the list
-of allowed options.
+The model reads the categorical text fields (grade, deposition method, substrate, specimen geometry, measurement
+method) only through its rule-based parser, as fixed categories (one-hot flags); grade and substrate additionally
+map to nominal material descriptors. Additives and post-treatment chemicals enter as cheminformatics descriptors
+of their structures (see pedot_pss._chemistry). By default every prediction first rewrites the categorical fields
+and additive names to one canonical wording per option (pedot_pss._canonical, the rewrite the training corpus
+received), so synonyms give identical predictions. ``strict`` mode also rejects categorical options outside
+vocabulary() and additives without a structure (not listed and no SMILES).
 """
 from __future__ import annotations
 
 from functools import lru_cache
-import re
 
 from ._vendor import features as _features
 from ._vendor.clean_inputs import canonicalize, feature_view
@@ -71,46 +73,27 @@ def chemicals(name):
 
 @lru_cache(maxsize=1)
 def vocabulary():
-    """Allowed options: {field: [canonical wordings]} plus the identified additive chemicals."""
+    """Listed options. Categorical fields: {field: [canonical wordings]}. additive_names: the molecules of the
+    bundled chemistry table (any other molecule can be given by SMILES); post_treatment_chemicals: the chemicals
+    detected in post_treatment text (others via post_treatment_smiles)."""
+    from ._chemistry import listed_additive_names, listed_post_treatment_chemicals
     out = {field: list(table.values()) for field, (_, table) in CATEGORY_FIELDS.items()}
-    out["additive_names"] = [CHEMICAL_NAMES[key] for key in _features.CHEMICAL_ALIASES if key in CHEMICAL_NAMES]
+    out["additive_names"] = listed_additive_names()
+    out["post_treatment_chemicals"] = listed_post_treatment_chemicals()
     return out
 
 
-def canonical_categories(experiment, registered_names=()):
-    """Strict mode: rewrite categorical fields and listed additive names to their canonical wording."""
-    out, notes = dict(experiment), []
-    for field, (_, table) in CATEGORY_FIELDS.items():
-        value = out.get(field)
-        if value is None:
-            continue
-        found = parse(field, value)
-        if not found:
-            raise ValueError(f"{field}={value!r} is not a recognised option; use one of: "
-                             + ", ".join(table.values()))
-        canonical = " + ".join(table[category] for category in found)
-        if canonical != value:
-            dropped = " (numbers in this text are not used; give settings in process_stages or "\
-                      "extra_scalar_features)" if re.search(r"\d", str(value)) and field == "deposition_method" else ""
-            notes.append(f"{field}: {value!r} -> {canonical!r}{dropped}")
-        out[field] = canonical
-    names = out.get("additive_names")
-    if names:
-        new_names = []
-        for name in names:
-            keys = chemicals(name)
-            if name in registered_names:
-                new_names.append(name)                     # an unlisted molecule already resolved from SMILES
-            elif len(keys) == 1 and keys[0] in CHEMICAL_NAMES:
-                canonical = CHEMICAL_NAMES[keys[0]]
-                if canonical != name:
-                    notes.append(f"additive_names: {name!r} -> {canonical!r}")
-                new_names.append(canonical)
-            elif len(keys) > 1:
-                raise ValueError(f"additive name {name!r} names several chemicals ({', '.join(keys)}); "
-                                 "give one chemical per entry")
-            else:
-                raise ValueError(f"additive name {name!r} is not an identified chemical; use one of "
-                                 f"pedot_pss.vocabulary()['additive_names'] or give its SMILES in additive_smiles")
-        out["additive_names"] = new_names
-    return out, notes
+def unlisted_options(experiment, registered_names=()):
+    """[(field, value)] for categorical values with no listed category and additive names without a structure
+    (not in the chemistry table and not given by SMILES, ``registered_names``)."""
+    from ._vendor import openrep
+    out = []
+    for field in CATEGORY_FIELDS:
+        value = experiment.get(field)
+        if isinstance(value, str) and not parse(field, value):
+            out.append((field, value))
+    names = openrep.chem().names
+    for name in experiment.get("additive_names") or []:
+        if isinstance(name, str) and name not in names and name not in registered_names:
+            out.append(("additive_names", name))
+    return out

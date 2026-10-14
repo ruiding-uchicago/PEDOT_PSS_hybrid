@@ -34,8 +34,8 @@ class ReleasedModelTests(unittest.TestCase):
                 predict(dict(self.recipe, **{field: "not-an-input"}))
 
     def test_prediction_needs_no_text_encoder(self):
-        # The released model gives its MatBERT residual head combiner weight 0, so the stages that
-        # would need the text encoder are not evaluated: no PyTorch import, no encoder process.
+        # The released model contains no text-reading late head (its late layer is the global kernel on
+        # parsed features), so prediction never needs the text encoder: no PyTorch import, no encoder process.
         import sys
         from pedot_pss import _encoder
         recipe = json.loads((REPO / "examples/planned_spin_coating.json").read_text())

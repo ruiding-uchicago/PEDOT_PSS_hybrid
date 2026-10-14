@@ -167,7 +167,7 @@
           "null"
         ]
       },
-      "description": "Optional, aligned with additive_names: a single-molecule SMILES per additive or null. A SMILES of a listed molecule resolves to that chemical; an unlisted molecule enters through five RDKit descriptors (needs the [chem] extra). The prediction for an unlisted molecule is an extrapolation."
+      "description": "Optional, aligned with additive_names: a SMILES per additive or null. Every additive enters the model through cheminformatics descriptors (35 RDKit descriptors and functional-group counts, structure classes, dose). Listed molecules (pedot_pss.vocabulary()['additive_names']) need no SMILES; a SMILES of a listed molecule resolves to it; any other molecule is described from its SMILES (needs the [chem] extra) and its prediction is an extrapolation in descriptor space."
     },
     "extra_scalar_features": {
       "type": [
@@ -423,6 +423,16 @@
           }
         }
       }
+    },
+    "post_treatment_smiles": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Optional: {chemical name as written in post_treatment: SMILES}. Post-treatment chemicals enter through the same cheminformatics descriptors, split into the active treatment and rinses, with the concentration read from the post_treatment text. Chemicals in pedot_pss.vocabulary()['post_treatment_chemicals'] are detected without SMILES; any other molecule can be given here (needs the [chem] extra)."
     }
   },
   "description": "24 optional pre-experiment fields; at least one usable planned condition is required. Extra scalar allowlist is v2 with planned via/bias/blend and preparation-water controls. No source identifiers or outcome measurements.",

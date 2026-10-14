@@ -1,123 +1,199 @@
-"""Additive chemistry from SMILES (optional; needs RDKit).
+"""Molecules given by structure (SMILES) for additives and post-treatment chemicals.
 
-The model represents additives by identified chemical (presence and dose) and by five RDKit descriptors
-of the identified molecules (molecular weight, Crippen logP, TPSA, H-bond donors and acceptors; mean,
-min and max over the recipe). ``additive_smiles`` lets a caller describe an additive by structure:
+The model describes every additive and post-treatment chemical by cheminformatics descriptors (35 RDKit
+descriptors and functional-group counts, structure classes such as acid / polar solvent / ionic liquid /
+surfactant, and the dose), never by its name. Listed molecules come with the bundled chemistry table
+(``_vendor/chem_table.json``, 329 additive names and 110 post-treatment chemicals). Any other molecule can be
+given by SMILES (needs RDKit: ``pip install 'pedot-pss-hybrid[chem]'``):
 
-* a SMILES of one of the molecules in the descriptor table is resolved to that chemical, so it predicts
-  exactly like writing the chemical's name;
-* an unlisted molecule is registered for the duration of the prediction with its own descriptors,
-  computed with the same RDKit calls as the table. It then enters through the descriptor features only;
-  the model has never seen it, so treat the prediction as an extrapolation in descriptor space.
+* ``additive_smiles``: a list aligned with ``additive_names`` (a SMILES or null per additive);
+* ``post_treatment_smiles``: ``{name as written in post_treatment: SMILES}``; concentration and role (active
+  treatment or rinse) are read from the ``post_treatment`` text exactly as for listed chemicals.
+
+The descriptors of a SMILES are computed with the same RDKit calls as the bundled table. A SMILES of a listed
+molecule (same InChIKey) is resolved to that entry. New molecules are registered only for the duration of the
+prediction.
 """
 from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import lru_cache
-import json
+import re
 import threading
 
-from ._vendor import features as _features
-from ._categories import CHEMICAL_NAMES
+from ._vendor import openrep as _openrep
 
 _LOCK = threading.RLock()
 
 
 def _rdkit():
     try:
-        from rdkit import Chem, RDLogger
-        from rdkit.Chem import Crippen, Descriptors, Lipinski, rdMolDescriptors
+        from ._vendor import chem_descriptors
+        from rdkit import Chem
     except ImportError as error:
-        raise ImportError("additive_smiles needs RDKit: pip install 'pedot-pss-hybrid[chem]' "
+        raise ImportError("Molecules given by SMILES need RDKit: pip install 'pedot-pss-hybrid[chem]' "
                           "(or pip install rdkit)") from error
-    RDLogger.DisableLog("rdApp.*")
-    return Chem, Crippen, Descriptors, Lipinski, rdMolDescriptors
+    return chem_descriptors, Chem
 
 
 def describe(smiles):
-    """Canonical SMILES, InChIKey and the table's five descriptors for one single-molecule SMILES."""
-    Chem, Crippen, Descriptors, Lipinski, rdMolDescriptors = _rdkit()
-    mol = Chem.MolFromSmiles(smiles)
+    """Table-style record (structure, RDKit descriptors, InChIKey) for one SMILES string."""
+    cd, Chem = _rdkit()
+    if not isinstance(smiles, str) or not smiles.strip():
+        raise ValueError("A SMILES must be a nonempty string")
+    try:
+        mol, _, _ = cd.prepare(smiles.strip())
+    except Exception as error:
+        raise ValueError(f"{smiles!r} is not a valid SMILES string") from error
     if mol is None:
-        raise ValueError(f"additive_smiles entry {smiles!r} is not a valid SMILES string")
-    if len(Chem.GetMolFrags(mol)) != 1:
-        raise ValueError(f"additive_smiles entry {smiles!r} must describe one molecule (one fragment)")
-    values = {"mol_wt": float(Descriptors.MolWt(mol)),
-              "mol_logp": float(Crippen.MolLogP(mol, includeHs=True, force=True)),
-              "tpsa": float(rdMolDescriptors.CalcTPSA(mol, force=True, includeSandP=False)),
-              "hbd": float(Lipinski.NumHDonors(mol)),
-              "hba": float(Lipinski.NumHAcceptors(mol))}
-    return {"canonical_smiles": Chem.MolToSmiles(mol), "inchikey": Chem.MolToInchiKey(mol), "values": values}
+        raise ValueError(f"{smiles!r} is not a valid SMILES string")
+    form = Chem.MolToSmiles(mol)
+    inchikey = Chem.MolToInchiKey(Chem.MolFromSmiles(smiles.strip())) or Chem.MolToInchiKey(mol)
+    fragments = len(Chem.GetMolFrags(mol))
+    return {"smiles": Chem.MolToSmiles(Chem.MolFromSmiles(smiles.strip())), "smiles_descriptor_form": form,
+            "class": "salt_or_ionic_liquid" if fragments > 1 else "small_molecule", "rdkit": cd.rd(mol),
+            "inchikey_rdkit": inchikey, "group_key": "inchikey:" + inchikey}
 
 
 @lru_cache(maxsize=1)
-def _listed_by_inchikey():
-    entries = json.loads(_features.DESCRIPTOR_PATH.read_text(encoding="utf-8")).get("entries", {})
-    return {entry["inchikey"]: key for key, entry in entries.items()
-            if isinstance(entry, dict) and entry.get("status") == "verified" and entry.get("inchikey")}
+def _listed():
+    """InChIKey -> listed additive name (the spelling most frequent in the training data) / post-treatment key."""
+    rep = _openrep.chem()
+    names = {}
+    for name, rec in sorted(rep.names.items(), key=lambda kv: (-(kv[1].get("mentions") or 0), kv[0])):
+        if rec.get("inchikey_rdkit"):
+            names.setdefault(rec["inchikey_rdkit"], name)
+    post = {}
+    for key, rec in sorted(rep.post.items()):
+        if rec.get("inchikey_rdkit"):
+            post.setdefault(rec["inchikey_rdkit"], key)
+    return names, post
 
 
-def resolve_additives(experiment):
-    """Remove ``additive_smiles`` and apply it to ``additive_names``.
+def listed_additive_names():
+    return sorted(_openrep.chem().names)
 
-    Returns (experiment without additive_smiles, {alias key: (pattern, descriptors)} to register, notes).
+
+def listed_post_treatment_chemicals():
+    rep = _openrep.chem()
+    return sorted({rec.get("canonical_name") or key for key, rec in rep.post.items()})
+
+
+def resolve_structures(experiment):
+    """Remove ``additive_smiles`` / ``post_treatment_smiles`` and resolve them.
+
+    Returns (experiment without the two fields, {"names": {name: record}, "post": {key: record}}, notes).
     """
-    out = {key: value for key, value in experiment.items() if key != "additive_smiles"}
+    out = {k: v for k, v in experiment.items() if k not in ("additive_smiles", "post_treatment_smiles")}
+    overrides, notes = {"names": {}, "post": {}}, []
     smiles = experiment.get("additive_smiles")
-    if smiles is None:
-        return out, {}, []
-    names = out.get("additive_names")
-    names = list(names) if isinstance(names, list) else ([] if names is None else [names])
-    if not isinstance(smiles, list) or len(smiles) != len(names):
-        raise ValueError("additive_smiles must be a list aligned with additive_names; use null where no SMILES is given")
-    listed = _listed_by_inchikey()
-    molecules, notes = {}, []
-    for i, (name, entry) in enumerate(zip(names, smiles)):
-        if entry is None:
-            continue
-        if not isinstance(entry, str) or not entry.strip():
-            raise ValueError(f"additive_smiles[{i}] must be a SMILES string or null")
-        info = describe(entry.strip())
-        hit = listed.get(info["inchikey"])
-        named = list(_features._chemicals(name)) if name is not None else []
-        if named:
-            if hit is not None and hit not in named:
+    if smiles is not None:
+        names = out.get("additive_names")
+        names = list(names) if isinstance(names, list) else ([] if names is None else [names])
+        if not isinstance(smiles, list) or len(smiles) != len(names):
+            raise ValueError("additive_smiles must be a list aligned with additive_names; use null where no SMILES "
+                             "is given")
+        rep = _openrep.chem()
+        listed_names, _ = _listed()
+        for i, (name, entry) in enumerate(zip(names, smiles)):
+            if entry is None:
+                continue
+            rec = describe(entry)
+            hit = listed_names.get(rec["inchikey_rdkit"])
+            known = rep.names.get(name) if isinstance(name, str) else None
+            if known is not None and known.get("inchikey_rdkit") and known["inchikey_rdkit"] != rec["inchikey_rdkit"]:
                 raise ValueError(f"additive {name!r} and its SMILES {entry!r} describe different molecules")
-            continue                                    # an identified name already carries the chemistry
-        if hit is not None:
-            names[i] = CHEMICAL_NAMES[hit]
-            notes.append(f"additive {i}: SMILES {entry!r} identifies {CHEMICAL_NAMES[hit]}")
+            if hit is not None:
+                if hit != name:
+                    notes.append(f"additive {i}: SMILES {entry!r} is the listed molecule {hit!r}")
+                names[i] = hit
+                continue
+            label = name if isinstance(name, str) and name.strip() else f"molecule {i}"
+            if label in rep.names:
+                raise ValueError(f"additive name {label!r} is a listed molecule with a different structure")
+            overrides["names"][label] = rec
+            names[i] = label
+            notes.append(f"additive {label!r} enters by its structure ({rec['smiles']}); it is not in the training "
+                         "chemistry, so treat the prediction as an extrapolation in descriptor space")
+        out["additive_names"] = names
+    post = experiment.get("post_treatment_smiles")
+    if post is not None:
+        if not isinstance(post, dict) or not all(isinstance(k, str) and k.strip() for k in post):
+            raise ValueError("post_treatment_smiles must map a chemical name used in post_treatment to its SMILES")
+        text = str(out.get("post_treatment") or "").lower()
+        _, listed_post = _listed()
+        rep = _openrep.chem()
+        for name, entry in post.items():
+            if name.strip().lower() not in text:
+                raise ValueError(f"post_treatment_smiles name {name!r} does not appear in post_treatment")
+            rec = describe(entry)
+            hit = listed_post.get(rec["inchikey_rdkit"])
+            if hit is not None:
+                rec = dict(rep.post[hit])
+                notes.append(f"post-treatment {name!r}: SMILES is the listed chemical {hit!r}")
+            else:
+                notes.append(f"post-treatment chemical {name!r} enters by its structure ({rec['smiles']}); it is not "
+                             "in the training chemistry, so treat the prediction as an extrapolation")
+            rec["pattern"] = r"(?<![\w])" + re.escape(name.strip().lower()) + r"(?![\w])"
+            rec.pop("negation_pattern", None)
+            overrides["post"]["user:" + name.strip().lower()] = rec
+    return out, overrides, notes
+
+
+def resolve_listed_aliases(experiment, overrides):
+    """Additive names outside the additive table that name exactly one identified chemical of the post-treatment
+    table (e.g. 'chlorobenzene') get that chemical's structure. Training additive names are all in the additive
+    table, so this only widens the inputs that are accepted."""
+    from ._vendor import features as _features
+    rep = _openrep.chem()
+    for name in experiment.get("additive_names") or []:
+        if not isinstance(name, str) or name in rep.names or name in overrides["names"]:
             continue
-        token = "unlisted" + info["inchikey"][:14].lower()
-        molecules["unlisted_" + info["inchikey"][:14].lower()] = (rf"\b{token}\b", info["values"])
-        names[i] = token
-        v = info["values"]
-        notes.append(f"additive {name!r} ({info['canonical_smiles']}) is not in the training chemistry; it enters "
-                     f"through RDKit descriptors only (MW {v['mol_wt']:.1f}, logP {v['mol_logp']:.2f}, "
-                     f"TPSA {v['tpsa']:.1f}, HBD {v['hbd']:.0f}, HBA {v['hba']:.0f}); treat as an extrapolation")
-    out["additive_names"] = names
-    return out, molecules, notes
+        keys = list(_features._chemicals(name))
+        if len(keys) == 1 and keys[0] in rep.post:
+            overrides["names"][name] = rep.post[keys[0]]
+    return overrides
+
+
+def merge(target, overrides):
+    """Merge one experiment's overrides into a batch-wide set (same name -> same structure required)."""
+    for kind in ("names", "post"):
+        for key, rec in overrides[kind].items():
+            have = target[kind].get(key)
+            if have is not None and have.get("inchikey_rdkit") != rec.get("inchikey_rdkit"):
+                raise ValueError(f"{key!r} is given with two different structures in one batch")
+            target[kind][key] = rec
+    return target
 
 
 @contextmanager
-def registered(molecules):
-    """Temporarily add unlisted molecules to the feature builder's chemical aliases and descriptor registry."""
-    if not molecules:
+def registered(overrides):
+    """Temporarily add molecules given by SMILES to the bundled chemistry adapter."""
+    if not overrides or not (overrides.get("names") or overrides.get("post")):
         yield
         return
     with _LOCK:
-        original = _features._molecular_registry
-        registry = dict(original())
-        added = []
+        rep = _openrep.chem()
+        added_names, added_post, added_patterns = [], [], []
         try:
-            for key, (pattern, values) in molecules.items():
-                if key not in _features.CHEMICAL_ALIASES:
-                    _features.CHEMICAL_ALIASES[key] = (pattern,)
-                    added.append(key)
-                registry[key] = dict(values)
-            _features._molecular_registry = lambda: registry
+            for name, rec in overrides["names"].items():
+                if name not in rep.names:
+                    rep.names[name] = rec
+                    added_names.append(name)
+            for key, rec in overrides["post"].items():
+                if key not in rep.post:
+                    rep.post[key] = rec
+                    added_post.append(key)
+                    pattern = (key, re.compile(rec["pattern"]))
+                    rep._post_patterns.append(pattern)
+                    added_patterns.append(pattern)
             yield
         finally:
-            for key in added:
-                _features.CHEMICAL_ALIASES.pop(key, None)
-            _features._molecular_registry = original
+            for name in added_names:
+                rec = rep.names.pop(name, None)
+                rep._entity.pop(id(rec), None)
+            for key in added_post:
+                rec = rep.post.pop(key, None)
+                rep._entity.pop(id(rec), None)
+            for pattern in added_patterns:
+                rep._post_patterns.remove(pattern)

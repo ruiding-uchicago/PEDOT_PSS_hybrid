@@ -1,95 +1,67 @@
-# Experiment-only original-module M/P port
+# Model card: PEDOT:PSS physics + ML hybrid conductivity surrogate (v0.2.0)
 
-**Complete fitted model with independently checked five-fold results.**
+**Task.** Predict the electrical conductivity (S/cm, reported as log10) of a planned PEDOT:PSS experiment from its
+material, recipe, processing and planned measurement conditions. Intended use: a surrogate for screening and
+ranking candidate experiments (Bayesian optimization, active learning, agent loops), followed by real measurements.
 
-Standalone inference has been verified in a fresh Python 3.12 environment on macOS:
-the installed package reproduces the private development model on 19 recipes
-(all seven physics branches, Polybot and literature rows, new recipes) to within
-1e-6 log10, with network access and reads of the development tree blocked. The
-model asset has not been published yet.
+**Inputs.** One experiment dictionary (24 optional fields) plus optional SMILES for molecules outside the bundled
+chemistry table. Missing input stays missing. Provenance identifiers, measured conductivity or its SD, measured
+coverage, film thickness and post-fabrication characterization are rejected.
 
-After removing 536 low-quality literature points (8%; rule `keep_v2_cap08`, which
-used out-of-fold residuals plus independent extraction evidence), pooled five-fold
-held-out results on 6,244 points:
+**Representation.** Every chemical and material enters through descriptors, never through its name:
+- additives and post-treatment chemicals: 35 RDKit descriptors and functional-group counts, structure classes and a
+  dose saturation, aggregated per recipe (post-treatment rinses kept apart from the active treatment);
+- grade and substrate: nominal material properties from supplier datasheets and handbooks;
+- deposition method, specimen geometry and measurement method: fixed categories; numbers in fixed units.
+Synonyms are rewritten to one canonical wording before training and prediction. The model contains no text
+embedding or bag-of-words component.
+
+**Results** (after removing 536 low-quality literature points, rule `keep_v2_cap08`, which used out-of-fold residuals
+plus independent extraction evidence; pooled held-out predictions on fixed random-row five folds, 6,244 points):
 
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
-| P (default) | 0.960 | 0.961 | 0.364 |
-| M | 0.960 | 0.961 | 0.363 |
+| P (default) | 0.960 | 0.961 | 0.365 |
+| M | 0.960 | 0.961 | 0.364 |
 
-Final-model fit on the 75 Polybot runs: R² 0.962 (training fit, not held out).
-Selection-aware estimates: P 0.960 / M 0.960 with combiner, guards and P cap chosen
-leave-one-fold-out.
+Final-model fit on the 75 Polybot runs: R² 0.962 (training fit, not held out). Unseen chemistry (all rows with a
+given additive held out together): R² 0.48 on those rows with this representation against 0.42 for the same model
+with name identities. The representation was chosen among 12 full-model variants on these folds; the paired
+bootstrap 95% interval of its change against the identity-based control was within [-0.002, +0.003].
 
-Intended use: a low-fidelity surrogate for initial PEDOT:PSS experimental
-screening. Planned material, recipe, processing and measurement conditions go
-in; predicted conductivity in S/cm and log10(S/cm) comes out. Missing input
-remains missing. Fixed molecular descriptors describe input molecules, rather
-than measurements of the fabricated film.
+**Architecture.**
+- Global base: ten GEM + residual-learner candidates (LightGBM, CatBoost, ExtraTrees), a calibrated GEM physics
+  reference, 17 meta models and a Ridge fusion. Residual learners are also trained on copies of the rows with the
+  chemical identity coordinates masked (identity dropout), so the descriptor path is learned everywhere.
+- Physics: McLachlan two-phase general effective medium with a process-dependent low-conducting endpoint, a positive
+  interface resistance, anisotropy and bounded bypass (DomainTransport). Acid (process gate), salt (applied
+  concentration, contact time and temperature), PEO (percolation in the nominal host volume fraction), SWCNT
+  (parallel path) and pure DAE (insulating prior) branches act only where the inputs define their protocol and only
+  inside the range covered by training.
+- Late layer: a global recipe kernel (256 Gaussian anchors, Ridge) on the encoded vector is fitted as a possible
+  late correction; its non-negative weight on the full training data is 0 (0 to 0.32 across the five folds), so the
+  released model has no late correction.
+- P: two cumulative Arrhenius clocks (thermal ordering E = 0.35 eV, damage E = 0.40 eV) modify the interface
+  resistance and the phase conductivities of the physical baseline, which is then re-solved; recipes outside the
+  conventional electronic PEDOT:PSS domain keep P = M.
+- Polybot platform branch (PH1000, blade coating on silicon, film, nine planned controls): a percolating-film state
+  (process GEM plus a bounded SVR residual) and a dewetted state, mixed by a DMSO-gated failure probability from two
+  Gaussian-process classifiers on a blade-coating regime number and the solvent-wash contact time and temperature.
 
-The port preserves original global/default learner families and meta/fusion
-equations, the source-free global recipe kernel, six late residual heads and
-supported physical corrections. The heads are word Ridge, numeric/text Ridge,
-nonlinear text LightGBM, full-feature LightGBM, character kernel/Ridge, and
-frozen MatBERT/rank-64/LightGBM. Each late scalar is learned within outer TRAIN
-using three inner folds and constrained to [-1, 1]. Each signed layer weight is refitted inside TRAIN; historical posthoc weights
-are not used for prediction.
+**Training.** All learned parameters (scalers, physical coefficients, learners, meta/fusion, the late-layer weight,
+physics support ranges, P parameters) are fitted inside the training data of each outer fold; inner three-fold
+splits create the stacking covariates. The chemistry table (PubChem structures, RDKit descriptors) and the material
+table are fixed resources that read no labels. The deployed model is fitted once on all 6,244 kept points.
 
-The physical P correction retains original DomainTransport two-phase GEM,
-interface, anisotropy and bypass calculations; removes duplicated thermal
-columns; and reuses the original thermal-competition common-14 correction.
-Known process stages supply thermal history. Parameters, scalers and linear
-corrections use TRAIN only. Unsupported or insufficiently specified protocols
-retain their parent prediction. Acid, salt and PEO, plus nominal-mass SWCNT
-parallel transport and an explicit UV-on pure-DAE prior, use original cores
-within input-defined applicability. The DAE prior is -12 log10(S/cm), not a
-measured endmember. SWCNT nominal mass is not asserted to be volume fraction.
+**Limitations.** Random-row folds measure interpolation within this corpus, not new-laboratory or new-chemistry
+extrapolation; molecules outside the training chemistry are an extrapolation in descriptor space. About 12% of
+additive mentions have no single structure (vague names, commercial mixtures) and enter through class flags only;
+polymer descriptors describe the repeat unit. The physics layers still recognize a few chemicals by identity
+(DMSO/EG process coordinates, acid and polar-solvent treatments, the acid/salt/PEO/SWCNT/DAE branches); a new
+molecule enters the data-driven layers through its descriptors only. Material descriptors are nominal values, not
+batch- or surface-treatment-specific. Effective physical parameters do not uniquely identify microscopic material
+properties.
 
-Polybot platform branch: within PH1000/blade-coating/silicon/film inputs with all
-nine planned controls, the prediction is a two-state mixture. The percolating film
-state is the unchanged process-GEM closure plus a bounded SVR residual; the
-dewetted state is the mean training level of non-percolating films. A DMSO-gated
-failure probability combines two Gaussian-process classifiers on film-formation
-coordinates derived from the controls (blade-coating regime number from capillary
-number and Antoine water evaporation flux; solvent-wash contact time and
-temperature). It is fitted on all 75 Polybot runs. Coverage and same-assay SD are
-not inputs; they were not used to fit this branch.
-
-Provenance identifiers, same-assay conductivity statistics, measured coverage
-and post-fabrication characterization are removed from model input. Original
-source-local routes use documented global fallbacks and source bias is
-removed. Data-dependent branches without prospective input support cannot
-remain unchanged. This retains original mathematical modules without claiming
-the entire historical M graph and all old weights are unchanged.
-
-The current input projection is `experiment-input-v3-text-clean-1012`.
-Outcome statements, provenance identifiers and literature-extraction wording
-are removed before experimental text reaches features or the frozen encoder.
-
-Evaluation population: 6,244 conductivity points after data cleaning (6,169 literature points from 429 papers and 75 Polybot runs).
-The five outer row folds are fixed. Targets and reported errors use log10
-conductivity in S/cm. The table reports complete held-out five-fold metrics, not training accuracy. Random-row evaluation does not measure new-laboratory or control-range
-extrapolation. Any grouped or control-range results must be reported separately
-with their split definitions.
-
-Previous retrospective all-data R² around 0.95 and Polybot R² around 0.97 belong
-to a system using additional unavailable information. They are not scores for
-this experiment-only predictor.
-
-The standalone release requires the complete fitted `model.joblib` state only.
-Since v0.1.1 prediction does not run the frozen MatBERT encoder: the joint late
-combiner gives the MatBERT head weight 0 and every stage after the last weighted
-one is skipped, which leaves the predictions bitwise identical to v0.1.0. It builds features and intermediate
-predictions internally, requiring no literature corpus, training-row lookup
-or private source directory. The encoder receives projected experimental
-text and is frozen. Effective physical parameters do not uniquely identify
-microscopic material properties.
-
-Since v0.1.2, `strict=True` maps the categorical inputs to fixed options and `additive_smiles` lets an additive be given
-by structure (unlisted molecules enter through RDKit descriptors only, as an extrapolation).
-
-The default published output is P. The complete fitted state is distributed
-in GitHub Release v0.1.0; `setup-model` installs it once. No corpus or
-per-point evaluation data is distributed. The frozen MatBERT backbone
-has 12 transformer layers, 12 attention heads per layer and hidden size768;
-its rank64 projection uses TRAIN inputs and its regression head uses TRAIN labels.
+**Distribution.** The complete fitted state (`model.joblib`) is the asset of GitHub Release v0.2.0;
+`python -m pedot_pss setup-model` installs it. No corpus or per-point evaluation data is distributed. Standalone
+inference was verified in a fresh environment with network access and reads of the development tree blocked.
