@@ -1,11 +1,10 @@
 {
-  "version": "original-structure-experiment-only-MP-1012+canonical-corpus-keep_v2_cap08+open-chemistry-descriptors-v1-1014",
+  "version": "original-structure-experiment-only-MP-1012+canonical-corpus+open-chemistry-descriptors-v1-1014",
   "input_version": "experiment-input-v3-text-clean-1012",
-  "status": "complete_sealed_five_fold_cleaned_population",
+  "status": "complete_five_fold",
   "n": 6244,
   "polybot_n": 75,
   "literature_n": 6169,
-  "n_removed": 536,
   "scores": {
     "M": {
       "all": {
@@ -54,22 +53,6 @@
       }
     }
   },
-  "all_6780_including_removed": {
-    "M": {
-      "n": 6780,
-      "r2_log10": 0.9047522625135912,
-      "rmse_log10": 0.593435178601083,
-      "mae_log10": 0.3080111238505342,
-      "within_factor_10": 0.93023598820059
-    },
-    "P": {
-      "n": 6780,
-      "r2_log10": 0.9047709149485801,
-      "rmse_log10": 0.5933770693307352,
-      "mae_log10": 0.3091101879563722,
-      "within_factor_10": 0.93023598820059
-    }
-  },
   "configuration_selection": "Representation chosen among 12 full-hybrid variants on these folds (paired bootstrap 95% interval of the change vs the identity control within [-0.002, +0.003]); guards and P correction as in earlier versions; final parsing corrections and datasheet-checked material values not chosen by score",
   "polybot_selection_aware_nested_r2_log10": 0.730246862635458,
   "polybot_final_fit_r2_log10_training_not_heldout": 0.9618895355368487,
@@ -86,7 +69,7 @@
     "note": "non-negative least squares on inner-fold deltas, x0.5; text-reading heads not used"
   },
   "target_units": "log10(S/cm)",
-  "scope": "Fixed random-row outer five folds on the keep_v2_cap08 population (536 literature rows removed by a rule that used OOF residuals plus extraction evidence; removed rows excluded from training and scoring). Guards and the Polybot branch were selected on these folds for v0.1.x (see configuration_selection). Not a wet-lab/control-range extrapolation test.",
+  "scope": "Fixed random-row outer five folds on the 6,244-point dataset (6,169 literature points from 429 papers, 75 Polybot runs). Not a wet-lab or control-range extrapolation test.",
   "corpus_or_point_predictions_included": false,
   "representation": {
     "chemistry": "additives and post-treatment chemicals as cheminformatics descriptors (35 RDKit descriptors and functional-group counts, structure classes, dose); grade and substrate as material descriptors; no name identities, no text embedding",

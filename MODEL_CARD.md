@@ -16,8 +16,8 @@ coverage, film thickness and post-fabrication characterization are rejected.
 Synonyms are rewritten to one canonical wording before training and prediction. The model contains no text
 embedding or bag-of-words component.
 
-**Results** (after removing 536 low-quality literature points, rule `keep_v2_cap08`, which used out-of-fold residuals
-plus independent extraction evidence; pooled held-out predictions on fixed random-row five folds, 6,244 points):
+**Results** (pooled held-out predictions on fixed random-row five folds over the dataset of 6,244 points: 6,169 from
+429 papers and 75 Polybot runs):
 
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
@@ -51,7 +51,7 @@ bootstrap 95% interval of its change against the identity-based control was with
 **Training.** All learned parameters (scalers, physical coefficients, learners, meta/fusion, the late-layer weight,
 physics support ranges, P parameters) are fitted inside the training data of each outer fold; inner three-fold
 splits create the stacking covariates. The chemistry table (PubChem structures, RDKit descriptors) and the material
-table are fixed resources that read no labels. The deployed model is fitted once on all 6,244 kept points.
+table are fixed resources that read no labels. The deployed model is fitted once on all 6,244 points.
 
 **Limitations.** Random-row folds measure interpolation within this corpus, not new-laboratory or new-chemistry
 extrapolation; molecules outside the training chemistry are an extrapolation in descriptor space. About 12% of

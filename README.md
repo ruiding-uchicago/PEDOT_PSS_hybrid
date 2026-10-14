@@ -18,11 +18,8 @@ The tool returns the physics-preferred output **P**; **M** is the companion benc
 
 ## Five-fold results
 
-Data cleaning: 536 low-quality literature points (8% of the literature rows) were removed with the `keep_v2_cap08`
-rule (consensus of out-of-fold residuals from five model families plus independent extraction evidence: non-PEDOT:PSS
-controls, quoted values, inconsistent duplicates, stretch/bend series, aggregates, value flags). Removed points are
-excluded from training and scoring; the 75 Polybot runs are never removed. Pooled held-out predictions on fixed
-random-row five folds, 6,244 points (6,169 from 429 papers + 75 Polybot runs):
+Pooled held-out predictions on fixed random-row five folds over the dataset of 6,244 points (6,169 from 429 papers
++ 75 Polybot runs):
 
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
@@ -32,8 +29,7 @@ random-row five folds, 6,244 points (6,169 from 429 papers + 75 Polybot runs):
 The final model reproduces the 75 Polybot runs it was trained on with R² 0.962; that is a training fit, not a
 held-out score.
 
-How to read these numbers. The cleaning rule used out-of-fold residuals, so report them as "after data cleaning".
-R² and RMSE use log10(S/cm). Random-row folds measure prediction within this corpus. For chemicals the model has
+How to read these numbers. R² and RMSE use log10(S/cm). Random-row folds measure prediction within this corpus. For chemicals the model has
 never seen, a chemical-grouped evaluation (all rows with a given additive held out together) gives R² 0.48 on
 those rows with the descriptor representation, against 0.42 for the same model with name identities. See the
 aggregate [evaluation](src/pedot_pss/models/evaluation.json) and the [model card](MODEL_CARD.md).

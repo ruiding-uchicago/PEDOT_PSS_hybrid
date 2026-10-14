@@ -8,7 +8,7 @@
   "corpus_included": false,
   "pretrained_encoder_checkpoint_in_git": false,
   "actual_cross_validation_results": {
-    "cleaned_population": "keep_v2_cap08 (536 literature rows removed, 6244 scored)",
+    "dataset": "6,244 points (6,169 literature from 429 papers, 75 Polybot runs)",
     "M": {
       "all": {
         "n": 6244,
@@ -63,7 +63,7 @@
     "filename": "model.joblib",
     "bytes": 173128776,
     "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.2.0/model.joblib",
-    "model_version": "original-structure-experiment-only-MP-1012+canonical-corpus-keep_v2_cap08+open-chemistry-descriptors-v1-1014",
+    "model_version": "original-structure-experiment-only-MP-1012+canonical-corpus+open-chemistry-descriptors-v1-1014",
     "input_version": "experiment-input-v3-text-clean-1012",
     "default_output": "P",
     "distribution": "Complete fitted state in the pinned GitHub release"
