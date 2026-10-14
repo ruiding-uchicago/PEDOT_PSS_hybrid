@@ -29,6 +29,18 @@ Pooled held-out predictions on fixed random-row five folds over the dataset of 6
 The final model reproduces the 75 Polybot runs it was trained on with R² 0.962; that is a training fit, not a
 held-out score.
 
+### Against common ML baselines
+
+Same 6,244 points, same five folds and the same encoded input vector for every model; baselines use standard
+settings (random forest 500 trees; MLP 256-128 from scikit-learn; ResNet-MLP 4 residual blocks, early stopping,
+5-seed ensemble; ridge with cross-validated penalty). The 75 Polybot runs are scored inside the same five-fold CV.
+
+![Hybrid vs baselines](docs/baselines.png)
+
+The hybrid is ahead overall, and far ahead on the Polybot runs (R² 0.833 vs at most 0.535). The Polybot runs come
+from an automated platform whose conditions differ from the literature, so this column shows how well each model
+carries over to a new setting.
+
 How to read these numbers. R² and RMSE use log10(S/cm). Random-row folds measure prediction within this corpus. For chemicals the model has
 never seen, a chemical-grouped evaluation (all rows with a given additive held out together) gives R² 0.48 on
 those rows with the descriptor representation, against 0.42 for the same model with name identities. See the
