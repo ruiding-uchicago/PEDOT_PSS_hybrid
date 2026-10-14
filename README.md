@@ -37,9 +37,11 @@ settings (random forest 500 trees; MLP 256-128 from scikit-learn; ResNet-MLP 4 r
 
 ![Hybrid vs baselines](docs/baselines.png)
 
-The hybrid is ahead overall, and far ahead on the Polybot runs (R² 0.833 vs at most 0.535). The Polybot runs come
-from an automated platform whose conditions differ from the literature, so this column shows how well each model
-carries over to a new setting.
+The hybrid is ahead overall, and far ahead on the Polybot runs (R² 0.833 vs at most 0.535). These are automated
+blade-coating runs, where a share of the films fail to form (dewet) and conduct orders of magnitude worse. The hybrid
+models this film-formation physics explicitly (see the blade-coating branch under Model structure); purely
+data-driven models have no such structure and cannot separate failed from working films. Each Polybot run is
+predicted by a model trained without it, with the other Polybot runs of the training folds in the training data.
 
 How to read these numbers. R² and RMSE use log10(S/cm). Random-row folds measure prediction within this corpus. For chemicals the model has
 never seen, a chemical-grouped evaluation (all rows with a given additive held out together) gives R² 0.48 on
@@ -294,11 +296,11 @@ These numbers illustrate the output format; they are not a model evaluation.
   released model is the base + physics + P chain without a late correction.
 - **Physics-preferred P:** two cumulative Arrhenius clocks (thermal ordering and damage) re-solve the effective
   medium and the interface circuit from the recipe's thermal history.
-- **Polybot platform branch** (PH1000, blade coating on silicon, film, all nine planned controls): a two-state
-  physical model, a percolating-film state (process GEM plus a bounded SVR residual) and a dewetted state, mixed by a
-  DMSO-gated failure probability from two Gaussian-process classifiers on film-formation coordinates (blade-coating
-  regime number from capillary number and Antoine water evaporation flux; solvent-wash contact time and
-  temperature).
+- **Blade-coating film-formation branch** (PH1000 blade-coated films on silicon with all nine coating, additive
+  and solvent-wash controls given). Blade coating is a scalable route to large-area films, and its dominant failure
+  mode, dewetting during coating and washing, is physically distinct from the solution-processed literature
+  films. The branch mixes a percolating-film state and a dewetted state by a film-formation failure probability
+  computed from coating and washing physics (details in the [model card](MODEL_CARD.md)).
 
 All learned parameters are fitted inside the training data of each fold. The package contains model code, the
 chemistry table (PubChem structures and RDKit descriptors), the material table, input/output examples and the

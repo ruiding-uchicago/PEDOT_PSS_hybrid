@@ -44,7 +44,9 @@ bootstrap 95% interval of its change against the identity-based control was with
 - P: two cumulative Arrhenius clocks (thermal ordering E = 0.35 eV, damage E = 0.40 eV) modify the interface
   resistance and the phase conductivities of the physical baseline, which is then re-solved; recipes outside the
   conventional electronic PEDOT:PSS domain keep P = M.
-- Polybot platform branch (PH1000, blade coating on silicon, film, nine planned controls): a percolating-film state
+- Blade-coating film-formation branch (PH1000 blade-coated films on silicon, nine coating, additive and wash
+  controls; motivated by blade coating as a scalable deposition route with a distinct dewetting failure mode;
+  fitted on the Polybot runs, the corpus's blade-coating data with complete controls): a percolating-film state
   (process GEM plus a bounded SVR residual) and a dewetted state, mixed by a DMSO-gated failure probability from two
   Gaussian-process classifiers on a blade-coating regime number and the solvent-wash contact time and temperature.
 
