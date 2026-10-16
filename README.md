@@ -180,6 +180,23 @@ Throughput tips:
   `canonical=False` (about 4× faster; predictions are identical for inputs already in canonical wording).
 - For more throughput run several processes, about 2 GB of memory each.
 
+### Known issues in v0.2.0 (fix in progress, v0.2.1)
+
+An audit that probed the model one factor at a time against classic literature found behaviours an optimizer can
+exploit when searching far from typical recipes. Accuracy on literature-like recipes (the five-fold results above)
+is not affected. Until v0.2.1, constrain open searches:
+
+- **Dose units:** write additive doses in vol%; some synergies are only applied for vol%, and M/mM doses are not
+  converted consistently. Negative or >100 vol% doses are not rejected.
+- **Trace additives:** very small doses (well below ~0.1 vol%) receive nearly the full additive effect; keep doses in
+  the practical range (e.g. DMSO/EG 3-10 vol%, ionic liquids ≥0.25 vol%) and use one additive.
+- **Acid post-treatment strength:** predictions depend too weakly on acid concentration; keep acids ≥70 wt%
+  (dilute acids are overrated) and treatment temperature at room temperature to 80 °C.
+- **Thermal steps:** predictions change in steps around some temperatures and pre-anneal times; fix the anneal
+  (e.g. 120 °C, 2-15 min, ≤160 °C) when searching other variables.
+- **Free text:** repeat counts written in text (e.g. "repeated 3 times") and the mere presence of a stage list can
+  raise predictions; keep measurement fields fixed (25 °C, four-point probe, in-plane) and do not add extra fields.
+
 ## For agent developers
 
 The package is meant to be called as a black-box tool inside optimization or agent loops.
