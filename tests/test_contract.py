@@ -104,3 +104,27 @@ class ExperimentalInputTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RangeAndDoseChecks(unittest.TestCase):
+    """v0.2.1: implausible doses are rejected; unusual conditions are noted (no model needed)."""
+
+    def test_negative_and_over_100_vol_percent_doses_are_rejected(self):
+        for amount in ("-1 vol%", "150 vol%"):
+            with self.subTest(amount=amount), self.assertRaises(ValueError):
+                normalize({"additive_names": ["DMSO"], "additive_amounts_raw": [amount]})
+
+    def test_mass_ratio_to_solids_may_exceed_100_percent(self):
+        clean = normalize({"additive_names": ["DMSO"], "additive_amounts_raw": ["440 wt%"],
+                           "dose_basis": "DMSO mass relative to PEDOT:PSS solids"})
+        self.assertEqual(clean["additive_amounts_raw"], ["440 wt%"])
+
+    def test_notes_for_conditions_outside_the_model(self):
+        from pedot_pss import range_notes
+        self.assertTrue(any("PET" in n.upper() for n in range_notes({"substrate": "PET", "anneal_temperature_C": 250.})))
+        self.assertTrue(any("fuming" in n for n in
+                            range_notes({"post_treatment": "immersed in 98 wt% aqueous nitric acid"})))
+        self.assertTrue(any("repeat" in n for n in
+                            range_notes({"post_treatment": "sulfuric acid treatment repeated 3 times"})))
+        self.assertEqual(range_notes({"substrate": "glass", "post_treatment": "immersed in 65 wt% nitric acid",
+                                      "anneal_temperature_C": 120.}), [])

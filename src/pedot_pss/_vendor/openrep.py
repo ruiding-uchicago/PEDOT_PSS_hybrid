@@ -146,8 +146,9 @@ class Spec:
     topk: component -> list of CID groups kept in K modes (frozen in the spec; corpus input frequency).
     """
 
-    def __init__(self, modes=None, strict=False, dropout=(), topk=None, brole=False):
+    def __init__(self, modes=None, strict=False, dropout=(), topk=None, brole=False, gate=None):
         modes = dict(modes or {})
+        self.gate = dict(gate) if gate else None   # gating.py config (v0.2.1 audit fixes); None = v0.2.0 behaviour
         self.brole = bool(brole)          # B v2: rinse-clause chemicals kept apart from the active treatment
         self.modes = {c: modes.get(c, "O") for c in COMPONENTS}
         for c, m in self.modes.items():
@@ -168,15 +169,20 @@ class Spec:
             t += "_drop" + "".join(self.dropout)
         if self.brole:
             t += "_brole"
+        if self.gate:
+            t += "_gate"
         return t + ("_strict" if self.strict else "")
 
     def is_identity(self):
         return all(m == "O" for m in self.modes.values())
 
     def describe(self):
-        return {"modes": dict(self.modes), "strict": self.strict, "dropout": list(self.dropout), "brole": self.brole,
-                "topk": {c: v for c, v in self.topk.items() if self.modes.get(c, "O").startswith("K")},
-                "version": VERSION}
+        out = {"modes": dict(self.modes), "strict": self.strict, "dropout": list(self.dropout), "brole": self.brole,
+               "topk": {c: v for c, v in self.topk.items() if self.modes.get(c, "O").startswith("K")},
+               "version": VERSION}
+        if self.gate:
+            out["gate"] = dict(self.gate)
+        return out
 
     def removed(self, key):
         comps = key_components(key)
@@ -228,10 +234,36 @@ def row_descriptors(canonical_row, spec):
     if spec.modes["D"] != "O":
         out.update(_MAT.substrate_features(canonical_row.get("substrate")))
     if spec.modes["A"] != "O":
-        out.update(chem().additive_features(canonical_row))
+        if spec.gate and spec.gate.get("v2"):
+            from . import chemrep
+            from . import gating
+            out.update(chemrep.aggregate(gating.additive_items_v2(canonical_row, chem()), "openA_"))
+        elif spec.gate and spec.gate.get("unify_units"):
+            from . import chemrep
+            from . import gating
+            out.update(chemrep.aggregate(gating.unify_units(chem().additive_entities(canonical_row), canonical_row),
+                                         "openA_"))
+        else:
+            out.update(chem().additive_features(canonical_row))
     if spec.modes["B"] != "O":
         out.update(chem().post_features(canonical_row, role_split=spec.brole))
+    if spec.gate:
+        from . import gating
+        out.update(gating.gate_info(canonical_row, chem(), unify=bool(spec.gate.get("unify_units")),
+                                    v2=bool(spec.gate.get("v2"))))
     return out
+
+
+_KEYSPACE = None
+
+
+def gate_keyspace():
+    global _KEYSPACE
+    if _KEYSPACE is None:
+        from . import chemrep
+        from . import gating
+        _KEYSPACE = gating.keyspace(chem(), chemrep.SLOT_DESC, chemrep.CLASSES)
+    return _KEYSPACE
 
 
 def transform_dict(row, desc, spec):
@@ -239,6 +271,9 @@ def transform_dict(row, desc, spec):
         return row
     out = {k: v for k, v in row.items() if not spec.removed(k)}
     out.update(desc)
+    if spec.gate:
+        from . import gating
+        gating.apply(out, gate_keyspace(), spec.gate)
     return out
 
 
@@ -315,7 +350,7 @@ def status():
 
 def spec_from_payload(payload):
     return Spec(payload.get("modes"), payload.get("strict", False), payload.get("dropout", ()), payload.get("topk"),
-                payload.get("brole", False))
+                payload.get("brole", False), payload.get("gate"))
 
 
 def spec_from_env(default=None):

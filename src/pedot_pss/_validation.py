@@ -1,5 +1,6 @@
 """Minimal physical/type validation of the public experimental input."""
 from collections.abc import Mapping
+import re
 import math
 from numbers import Real
 
@@ -29,6 +30,22 @@ def _number(value, path, *, minimum=None, maximum=None, temperature=False):
         raise ValueError(f"{path} must be at least {minimum}")
     if maximum is not None and value > maximum:
         raise ValueError(f"{path} must be at most {maximum}")
+
+
+_AMOUNT = re.compile(r"^\s*([-+−]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)\s*(.*)$")
+
+
+def _amount_text(text, path):
+    """Reject a negative dose and a volume fraction above 100 vol% (mass ratios to solids may exceed 100 %)."""
+    match = _AMOUNT.match(text)
+    if not match:
+        return
+    value = float(match.group(1).replace("−", "-"))
+    unit = match.group(2).strip().lower().replace(" ", "").replace(".", "")
+    if value < 0:
+        raise ValueError(f"{path} must not be negative")
+    if value > 100 and unit.startswith(("vol%", "v/v")):
+        raise ValueError(f"{path} must be at most 100 vol%")
 
 
 def _list(value, path):
@@ -100,7 +117,10 @@ def validate(experiment):
     if any(not isinstance(name, str) or not name.strip() for name in names):
         raise ValueError("Each additive name must be a nonempty string")
     for i, amount in enumerate(amounts):
-        if isinstance(amount, str) or amount is None:
+        if amount is None:
+            continue
+        if isinstance(amount, str):
+            _amount_text(amount, f"additive_amounts_raw[{i}]")
             continue
         _number(amount, f"additive_amounts_raw[{i}]", minimum=0)
     for i, item in enumerate(_list(experiment.get("extra_scalar_features"), "extra_scalar_features")):

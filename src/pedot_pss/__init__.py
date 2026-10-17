@@ -6,6 +6,7 @@ from importlib import import_module
 from pathlib import Path
 from collections.abc import Mapping
 import math
+import re
 import os
 import sys
 import threading
@@ -21,10 +22,56 @@ from ._canonical import canonical_experiment
 from ._categories import unlisted_options, vocabulary
 from ._chemistry import merge, registered, resolve_listed_aliases, resolve_structures
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 _DEFAULT_MODEL = Path(__file__).with_name("models") / "model.joblib"
 _MODELS = {}
 _LOAD_LOCK = threading.RLock()
+
+
+# Temperatures beyond the training data (99.5th percentile) are held at these values by the model, which does not
+# represent thermal degradation; substrates have practical limits that a recipe should not exceed.
+_SUPPORT_C = {"post_treatment_temperature_C": 200.0, "anneal_temperature_C": 230.0, "dry_temperature_C": 230.0}
+_SUBSTRATE_MAX_C = (("pet", 150.0), ("polyethylene terephthalate", 150.0), ("pen", 200.0), ("pdms", 200.0),
+                    ("paper", 200.0), ("textile", 180.0), ("fabric", 180.0), ("cotton", 180.0))
+
+
+_REPEAT = re.compile(r"(?:repeat(?:ed)?|performed|applied|treated|dipped|immersed)[^.;]{0,40}?\b(?:[2-9]|\d{2,}|twice|"
+                     r"three|four|five)\s*(?:times|x\b|cycles)|\b(?:[2-9]|\d{2,})\s*(?:times|cycles)\b|\btwice\b|x\s*[2-9]\b")
+_NITRIC = re.compile(r"(\d+(?:\.\d+)?)\s*(?:wt\.?\s*%|%)\s*(?:aqueous\s+)?(?:hno3|nitric)|"
+                     r"(?:hno3|nitric acid)\s*\(?\s*(\d+(?:\.\d+)?)\s*(?:wt\.?\s*%|%)")
+
+
+def range_notes(clean):
+    """Notes for temperatures beyond the training support or above the substrate's practical limit."""
+    notes = []
+    temps = {k: clean.get(k) for k in _SUPPORT_C if isinstance(clean.get(k), (int, float))}
+    for st in clean.get("process_stages") or []:
+        t = st.get("temperature_C") if isinstance(st, Mapping) else None
+        if isinstance(t, (int, float)):
+            key = "post_treatment_temperature_C" if st.get("kind") in ("post_treat", "rinse") else "anneal_temperature_C"
+            temps[key] = max(temps.get(key, t), t)
+    for key, t in temps.items():
+        if t > _SUPPORT_C[key]:
+            notes.append(f"{key} = {t:g} C is above the training data (max ~{_SUPPORT_C[key]:g} C); the model holds "
+                         "the prediction at that temperature and does not represent thermal degradation")
+    text = " ".join(str(clean.get(k) or "") for k in ("post_treatment", "process_sequence")).lower()
+    if _REPEAT.search(text):
+        notes.append("a repeat count is written in the text; this version raises predictions for written repeats by "
+                     "up to ~1.4x, so treat the gain as uncertain (describe each treatment once)")
+    for m in _NITRIC.finditer(text):
+        conc = float(m.group(1) or m.group(2))
+        if conc > 70.0:
+            notes.append(f"nitric acid at {conc:g} wt% is fuming acid, beyond the ~65-70 wt% used in the literature; "
+                         "film damage under such conditions is not modelled")
+            break
+    substrate = str(clean.get("substrate") or "").lower()
+    hottest = max(temps.values(), default=None)
+    for word, limit in _SUBSTRATE_MAX_C:
+        if hottest is not None and re.search(rf"\b{re.escape(word)}\b", substrate) and hottest > limit:
+            notes.append(f"{hottest:g} C exceeds the practical limit of a {word} substrate (~{limit:g} C); the recipe "
+                         "is likely not feasible")
+            break
+    return notes
 
 
 def _prepare(experiment, strict, canonical=True):
@@ -45,7 +92,7 @@ def _prepare(experiment, strict, canonical=True):
         notes = notes + rewrites + [f"{field}: {value!r} is not a listed option; used as written" for field, value in unlisted]
     clean = canonicalize(experiment)
     require_condition(clean)
-    return clean, molecules, notes
+    return clean, molecules, notes + range_notes(clean)
 
 
 def normalize(experiment, *, canonical=True, strict=False):

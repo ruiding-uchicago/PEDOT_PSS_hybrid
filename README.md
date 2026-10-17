@@ -13,7 +13,7 @@ additives and 110 post-treatment chemicals are listed, and any other molecule ca
 input space far larger than a grid search can cover, which is what the surrogate is for.
 
 Complete fitted model; standalone inference verified in a fresh environment (macOS arm64, Python 3.12). Linux uses
-the same code path but has not been tested yet. The fitted model is the asset of GitHub Release v0.2.0.
+the same code path but has not been tested yet. The fitted model is the asset of GitHub Release v0.2.1.
 The tool returns the physics-preferred output **P**; **M** is the companion benchmark.
 
 ## Five-fold results
@@ -24,28 +24,29 @@ Pooled held-out predictions on fixed random-row five folds over the dataset of 6
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
 | P (default) | 0.960 | 0.961 | 0.365 |
-| M | 0.960 | 0.961 | 0.364 |
+| M | 0.960 | 0.961 | 0.365 |
 
 The final model reproduces the 75 Polybot runs it was trained on with R² 0.962; that is a training fit, not a
 held-out score.
 
 ### Against common ML baselines
 
-Same 6,244 points, same five folds and the same encoded input vector for every model; baselines use standard
-settings (random forest 500 trees; MLP 256-128 from scikit-learn; ResNet-MLP 4 residual blocks, early stopping,
+Same 6,244 points, same five folds and the same inputs for every model; each baseline was run on the v0.2.0 and the
+v0.2.1 encoding of the inputs and is shown with its better result. Baselines use standard settings (random forest 500 trees; MLP 256-128 from scikit-learn; ResNet-MLP 4 residual blocks, early stopping,
 5-seed ensemble; ridge with cross-validated penalty). The 75 Polybot runs are scored inside the same five-fold CV.
 
 ![Hybrid vs baselines](docs/baselines.png)
 
-The hybrid is ahead overall, and far ahead on the Polybot runs (R² 0.833 vs at most 0.535). These are automated
+The hybrid is ahead overall, and far ahead on the Polybot runs (R² 0.833 vs at most 0.56 for any baseline). These are automated
 blade-coating runs, where a share of the films fail to form (dewet) and conduct orders of magnitude worse. The hybrid
 models this film-formation physics explicitly (see the blade-coating branch under Model structure); purely
 data-driven models have no such structure and cannot separate failed from working films. Each Polybot run is
 predicted by a model trained without it, with the other Polybot runs of the training folds in the training data.
 
 How to read these numbers. R² and RMSE use log10(S/cm). Random-row folds measure prediction within this corpus. For chemicals the model has
-never seen, a chemical-grouped evaluation (all rows with a given additive held out together) gives R² 0.48 on
-those rows with the descriptor representation, against 0.42 for the same model with name identities. See the
+never seen, a chemical-grouped evaluation (all rows with a given additive held out together; representation study
+of v0.2.0) gives R² 0.48 on those rows with the descriptor representation, against 0.42 for the same model with name
+identities. See the
 aggregate [evaluation](src/pedot_pss/models/evaluation.json) and the [model card](MODEL_CARD.md).
 
 ## Use
@@ -148,10 +149,10 @@ post-treatment chemical from 10⁴ at 10 concentrations, 10 temperatures and 10 
 substrates and deposition methods with 10 × 10 anneal conditions) holds about 10¹⁷ recipes; with PubChem-scale
 chemistry it is about 10²¹.
 
-Measured throughput (laptop CPU, one process): about 40 recipes/s for batches in canonical wording
-(`predict_many(..., canonical=False)`), about 10 recipes/s with the default synonym rewrite, and about 0.3 s for one
+Measured throughput (laptop CPU, one process): about 35 recipes/s for batches in canonical wording
+(`predict_many(..., canonical=False)`), about 10 recipes/s with the default synonym rewrite, and about 0.1-0.3 s for one
 call. Processes scale linearly (about 2 GB of memory each; more threads do not help). Even with 8 processes
-(about 300 recipes/s), 10⁹ recipes take about 40 days and 10¹⁷ recipes about 10 million years.
+(about 250 recipes/s), 10⁹ recipes take about 45 days and 10¹⁷ recipes about 13 million years.
 
 Brute-force enumeration is therefore not an option. Use the surrogate as the objective of a guided search
 (Bayesian optimization, evolutionary or generative molecular design, or an LLM agent that proposes candidates),
@@ -164,13 +165,13 @@ molecule given by structure).
 brute-force estimate:
 
 ```text
-928 recipes (232 molecules x 4 doses) in 22.3 s = 42 recipes/s in one process
+928 recipes (232 molecules x 4 doses) in 28.0 s = 33 recipes/s in one process
 Top 10 candidates
-     639.6 S/cm  ethyl methyl sulfone at 10 vol%
-     620.6 S/cm  ethyl methyl sulfone at 5 vol%
+     479.6 S/cm  ethyl methyl sulfone at 5 vol%
+     474.7 S/cm  ethyl methyl sulfone at 10 vol%
+     453.5 S/cm  ethyl methyl sulfone at 3 vol%
+     451.7 S/cm  2-pyrrolidone at 10 vol%
      ...
-     468.7 S/cm  propylene glycol at 10 vol%
-     462.6 S/cm  N-methylacetamide at 5 vol%
 ```
 
 Throughput tips:
@@ -180,22 +181,27 @@ Throughput tips:
   `canonical=False` (about 4× faster; predictions are identical for inputs already in canonical wording).
 - For more throughput run several processes, about 2 GB of memory each.
 
-### Known issues in v0.2.0 (fix in progress, v0.2.1)
+### Physical consistency (v0.2.1)
 
-An audit that probed the model one factor at a time against classic literature found behaviours an optimizer can
-exploit when searching far from typical recipes. Accuracy on literature-like recipes (the five-fold results above)
-is not affected. Until v0.2.1, constrain open searches:
+v0.2.1 keeps the five-fold accuracy of v0.2.0 and fixes behaviours that an optimizer could exploit far from typical
+recipes. They were found by probing the model one factor at a time against classic literature:
 
-- **Dose units:** write additive doses in vol%; some synergies are only applied for vol%, and M/mM doses are not
-  converted consistently. Negative or >100 vol% doses are not rejected.
-- **Trace additives:** very small doses (well below ~0.1 vol%) receive nearly the full additive effect; keep doses in
-  the practical range (e.g. DMSO/EG 3-10 vol%, ionic liquids ≥0.25 vol%) and use one additive.
-- **Acid post-treatment strength:** predictions depend too weakly on acid concentration; keep acids ≥70 wt%
-  (dilute acids are overrated) and treatment temperature at room temperature to 80 °C.
-- **Thermal steps:** predictions change in steps around some temperatures and pre-anneal times; fix the anneal
-  (e.g. 120 °C, 2-15 min, ≤160 °C) when searching other variables.
-- **Free text:** repeat counts written in text (e.g. "repeated 3 times") and the mere presence of a stage list can
-  raise predictions; keep measurement fields fixed (25 °C, four-point probe, in-plane) and do not add extra fields.
+- **Doses:** an additive's effect fades smoothly to zero with its dose. Doses given in vol%, wt%, mol/L, mg/mL, ppm,
+  as ratios or relative to the polymer solids are converted to one scale, and a trace co-additive changes nothing.
+- **Acid treatments:** the effect rises with acid concentration; a pH 3 bath or 0.1 wt% acid acts like a weak rinse.
+  Acid drop-cast on a hot film counts as more concentrated as the water evaporates, with no step at any temperature.
+- **Additive followed by concentrated acid:** the acid largely overrides secondary doping (about 1.2x acid alone, as
+  in the training data).
+- **Temperatures:** predictions change smoothly; values beyond the training data (post-treatment above 200 °C,
+  other steps above 230 °C) are held at the limit.
+- **Wording:** the same steps written with or without a stage list give the same prediction.
+
+Predictions carry notes when a temperature exceeds the training data or the substrate's practical limit (e.g. PET
+above ~150 °C), when nitric acid is above ~70 wt% (fuming), or when a repeat count is written in the text.
+
+Known limitations: dilute acids (around 20 wt%) remain about 3x above literature values and neat acids about 2x
+below; water and base dips raise pristine films (as reported in the training data); a repeat count written in the
+text adds up to about 1.4x; film damage under harsh conditions (fuming acid, very high temperature) is not modelled.
 
 ## For agent developers
 
@@ -210,7 +216,7 @@ The package is meant to be called as a black-box tool inside optimization or age
   SMILES) and the post-treatment chemical; `pedot_pss.vocabulary()` lists the fixed options.
 - **Speed (laptop CPU):** importing the package and loading the model take about 15 s (the very first import
   after installation takes about 30 s more while Python compiles the package); one prediction then takes about
-  0.3 s and batches run at about 10 recipes/s, or about 40 recipes/s with `canonical=False` (see "Searching the
+  0.3 s and batches run at about 10 recipes/s, or about 35 recipes/s with `canonical=False` (see "Searching the
   input space"). No GPU and no PyTorch are needed.
 - **Search strategy:** the design space is far too large to enumerate; drive the tool with a guided search
   (Bayesian optimization, evolutionary search, an agent) rather than a grid.
@@ -305,6 +311,10 @@ These numbers illustrate the output format; they are not a model evaluation.
   families built from the encoded recipe), a calibrated GEM physics reference, 17 meta models and a Ridge fusion.
   During training the residual learners also see copies of the rows with the chemical identity coordinates masked,
   so the descriptor path is learned everywhere.
+- **Dose- and strength-aware chemistry inputs:** each additive's and post-treatment chemical's descriptors are
+  weighted by a smooth dose gate, acids by a Hill function of concentration (K = 55 wt% or 8 mol/L), and under a
+  strong acid the additive signal is damped. Training adds label-preserving jitter of temperatures (±6 °C),
+  durations (±20%) and doses (±10%) to the identity-masked copies, which removes step artifacts along these axes.
 - **Physics:** two-phase McLachlan general effective medium transport with a positive interface resistance,
   anisotropy and bounded bypass; acid, salt, PEO, SWCNT and pure-DAE branches activate only where the experiment
   defines their protocol and only inside the range covered by training (otherwise the parent prediction is kept).
@@ -328,5 +338,5 @@ project directory. See [MODEL_CARD.md](MODEL_CARD.md).
 
 Chemical structures were resolved with PubChem (public domain data, NCBI); descriptors are computed with RDKit (BSD).
 The optional `setup-encoder` command, kept only for older model files, fetches the MatBERT encoder of the Lawrence
-Berkeley National Laboratory NLP project (LBNLP); the v0.2.0 model contains no MatBERT component. The original MIT
+Berkeley National Laboratory NLP project (LBNLP); the released model contains no MatBERT component. The original MIT
 notice is preserved in [third_party/MatBERT_LICENSE.txt](third_party/MatBERT_LICENSE.txt).
