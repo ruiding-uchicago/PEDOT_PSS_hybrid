@@ -22,7 +22,7 @@ from ._canonical import canonical_experiment
 from ._categories import unlisted_options, vocabulary
 from ._chemistry import merge, registered, resolve_listed_aliases, resolve_structures
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 _DEFAULT_MODEL = Path(__file__).with_name("models") / "model.joblib"
 _MODELS = {}
 _LOAD_LOCK = threading.RLock()
@@ -56,8 +56,8 @@ def range_notes(clean):
                          "the prediction at that temperature and does not represent thermal degradation")
     text = " ".join(str(clean.get(k) or "") for k in ("post_treatment", "process_sequence")).lower()
     if _REPEAT.search(text):
-        notes.append("a repeat count is written in the text; this version raises predictions for written repeats by "
-                     "up to ~1.4x, so treat the gain as uncertain (describe each treatment once)")
+        notes.append("a repeat count is written in the text; repeat counts do not change the prediction (each "
+                     "treatment is counted once)")
     for m in _NITRIC.finditer(text):
         conc = float(m.group(1) or m.group(2))
         if conc > 70.0:

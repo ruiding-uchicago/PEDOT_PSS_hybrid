@@ -40,6 +40,26 @@ v2 (round 4, after the re-audit of the round-3 candidate; enabled by cfg["v2"]):
   * N06/N15/N26 temperature inputs are clipped to the training support (post-treatment <= 200 C, others <= 230 C;
     cfg["temp_clip"]): beyond it the model neither rewards nor extrapolates (degradation is not modelled).
 
+v3 (v0.2.2; enabled by cfg["v3"], on top of v2):
+  * A post-treatment liquid is described by its composition: each acid by its mass fraction (wt%/vol% as given,
+    mol/L x molar mass, pH or words via acid_text_conc; hot-drop evaporation raises it smoothly, capped at 98%), and
+    the remainder by the stated co-solvent(s) or, if none is named, water. A 1 wt% aqueous acid is then 99% water
+    and is read like a water dip; a concentrated acid stays acid-dominated. Trace non-acid chemicals are dropped.
+    The post-treatment descriptors are no longer scaled by a component gate (the composition carries the dilution).
+  * Repeat-count features (`*_cycles`) are dropped entirely: a count written in the text does not change the result.
+
+v3b (v0.2.2; cfg["v3b"], on top of v3). The v3 retrain still read a 1 wt% acid bath as an acid treatment, through
+features that in the training data only occur with acids (an explicit water dose and a second slot, a water rinse,
+and acid flags of ~1e-7 that trees split from 0). v3b makes a weak acid exactly absent:
+  * acid strengths below ACID_FLOOR (~21 wt% H2SO4 at room temperature) become 0, above it they rise smoothly
+    ((s - floor) / (1 - floor)); this strength weights the acid in the composition and sets acid_post_present and
+    the acid operation flags;
+  * every bath gets an explicit composition: named solvents without a dose share what the dosed components leave
+    (a water dip is 100 vol% water, like the water in a dilute acid bath), else water takes the remainder;
+  * dose and saturation keys scale with the component's weight, slots list non-acids before acids, slot unit strings
+    are not written, and all post-treatment keys are zero-filled, so a zero-weight acid equals no acid;
+  * a water rinse writes no rinse features (it only marks that an acid was used).
+
 Vendored from the m-open study: package-relative imports.
 """
 from __future__ import annotations
@@ -47,7 +67,7 @@ from __future__ import annotations
 import math
 import re
 
-VERSION = "gate-v2-1016"
+VERSION = "gate-v3b-1019"
 TRACE_D0 = {"volpct": 0.05, "wtpct": 0.05, "molpct": 0.05, "pct_unresolved": 0.05, "pct_basis_unresolved": 0.05,
             "mol_L": 0.005, "mmol_L": 5.0, "normality_eq_L": 0.005, "mg_mL": 0.5}
 POST_D0 = dict(TRACE_D0)
@@ -76,6 +96,12 @@ _FORMAT_KEYS = ("has_process_sequence", "process_stage_boundary_known")
 _STAGE_SLOT = re.compile(r"^(?:has_)?planned_stage_\d+_")
 _CYCLES = re.compile(r"cycles(?:_|$)")
 _KEEP_UNGATED = re.compile(r"(?:_dose|_sat|_unit|sat_sum|n_dose_known|dose_sum_\w+)$")
+ACID_FLOOR = 0.02
+
+
+def soft_acid(s):
+    """v3b acid strength: 0 below ACID_FLOOR, then a linear rise to 1 (continuous)."""
+    return None if s is None else max(0.0, (float(s) - ACID_FLOOR) / (1.0 - ACID_FLOOR))
 
 
 def trace_gate(dose, unit, d0_table=TRACE_D0):
@@ -332,12 +358,198 @@ def gate_info_v2(row, chem):
     return out
 
 
+def _acid_fraction(e, factor):
+    """Mass fraction (0-1) of an acid in its treatment liquid (hot-drop factor applied), or None if unknown."""
+    d, u = e.get("dose"), e.get("unit")
+    if d is None or not math.isfinite(d):
+        return None
+    if d <= 0:
+        return 0.0
+    if u in ("wtpct", "volpct", "pct_unresolved", "pct_basis_unresolved", "molpct"):
+        f = d / 100.0
+    elif u in ("mol_L", "mmol_L", "normality_eq_L"):
+        c = d / 1000.0 if u == "mmol_L" else d / 2.0 if u == "normality_eq_L" else d
+        mw = 10.0 ** ((e["ent"].get("desc") or {}).get("mol_wt", 2.0))      # descriptor stores log10(MW)
+        f = c * mw / 1000.0                                                 # g per mL, density ~1
+    else:
+        return None
+    return min(0.98, f * factor)
+
+
+def aggregate_weighted(items, weights, p, v3b=False):
+    """chemrep.aggregate with per-entity weights (v3): identity-type keys (class flags, slot descriptors, counts)
+    scale with the entity's effective weight, means use saturation x weight; dose/saturation keys stay as given.
+    max_/min_ descriptor keys are not written (they would expose a weak component at full value).
+    v3b: dose/saturation bookkeeping also scales with the weight, slots list non-acids first, no slot unit strings."""
+    from . import chemrep
+    out = {p + "n": float(sum(weights))}
+    if not items:
+        return out
+    out[p + "n_struct"] = float(sum(w for e, w in zip(items, weights) if e["ent"]["struct"]))
+    sats = []
+    for e in items:
+        sv = chemrep.saturation(e["dose"], e["unit"])
+        sats.append(0.5 if sv is None else sv)
+    eff = [sv * w for sv, w in zip(sats, weights)]
+    unit_sum = {}
+    for e, w in zip(items, weights):
+        if e["dose"] is not None and e["unit"] in chemrep.UNIT_GROUPS:
+            u = chemrep.UNIT_GROUPS[e["unit"]]
+            d = e["dose"] / 1000.0 if e["unit"] == "mmol_L" else e["dose"]
+            unit_sum[u] = unit_sum.get(u, 0.0) + (d * w if v3b else d)
+    if v3b:
+        out[p + "n_dose_known"] = float(sum(w for e, w in zip(items, weights)
+                                            if chemrep.saturation(e["dose"], e["unit"]) is not None))
+    else:
+        out[p + "n_dose_known"] = float(sum(chemrep.saturation(e["dose"], e["unit"]) is not None for e in items))
+    out[p + "sat_sum"] = float(sum(eff))
+    for u, v in unit_sum.items():
+        out[p + "dose_sum_" + u] = v
+    for c in chemrep.CLASSES:
+        flags = [e["ent"]["cls"].get(c, 0.0) for e in items]
+        if any(flags):
+            out[p + "cls_" + c] = float(min(1.0, sum(f * w for f, w in zip(flags, weights))))
+            out[p + "clsdose_" + c] = float(sum(f * x for f, x in zip(flags, eff)))
+    struct = [(e, x) for e, x in zip(items, eff) if e["ent"]["desc"]]
+    if struct:
+        for k in sorted({k for e, _ in struct for k in e["ent"]["desc"]}):
+            vals = [(e["ent"]["desc"][k], x) for e, x in struct if k in e["ent"]["desc"]]
+            tot = sum(x for _, x in vals)
+            if vals and tot > 1e-12:
+                out[p + "wm_" + k] = float(sum(v * x for v, x in vals) / tot)
+    polys = [(e, x) for e, x in zip(items, eff) if e["ent"].get("polydesc")]
+    if polys:
+        for k in ("mol_logp", "tpsa", "hbd", "hba", "fg_ether", "fg_hydroxyl", "fg_sulfonic_acid_or_sulfonate",
+                  "fg_amide", "fg_amine", "fg_ester", "positive_charge_count", "negative_charge_count", "log10_mn"):
+            vals = [(e["ent"]["polydesc"][k], x) for e, x in polys if k in e["ent"]["polydesc"]]
+            tot = sum(x for _, x in vals)
+            if vals and tot > 1e-12:
+                out[p + "poly_wm_" + k] = float(sum(v * x for v, x in vals) / tot)
+    if v3b:
+        order = sorted(range(len(items)), key=lambda i: (bool(items[i]["ent"]["cls"].get("acid")), -eff[i],
+                                                         items[i]["ent"]["group"]))
+    else:
+        order = sorted(range(len(items)), key=lambda i: (-eff[i], items[i]["ent"]["group"]))
+    for slot, i in enumerate(order[:2], start=1):
+        e, w = items[i], weights[i]
+        q = f"{p}s{slot}_"
+        out[q + "sat"] = float(sats[i] * w if v3b else sats[i])
+        if e["dose"] is not None:
+            out[q + "dose"] = float(e["dose"] * w if v3b else e["dose"])
+        if not v3b:
+            out[q + "unit"] = str(e["unit"])
+        d = e["ent"]["desc"]
+        if d:
+            for k in chemrep.SLOT_DESC:
+                if k in d:
+                    out[q + k] = d[k] * w
+        pd = e["ent"].get("polydesc")
+        if pd:
+            for k in ("mol_logp", "tpsa", "fg_ether", "fg_hydroxyl", "fg_sulfonic_acid_or_sulfonate", "log10_mn"):
+                if k in pd:
+                    out[q + "poly_" + k] = pd[k] * w
+        for c in ("acid", "polar_solvent", "ionic_liquid", "metal_salt", "surfactant", "polymer", "nano_carbon",
+                  "nano_metal"):
+            if e["ent"]["cls"].get(c):
+                out[q + "cls_" + c] = float(w)
+    return out
+
+
+def post_features_v3(row, chem, cfg=None):
+    """openB_ features of the post-treatment by composition (v3; role-split like chemrep.post_features).
+
+    Each acid: mass fraction (hot-drop factor applied) as its dose and its Hill strength as its weight; the remainder
+    of the liquid: the named co-solvent(s) or water, weight 1; other chemicals: their trace gate as weight.
+    v3b (cfg["v3b"]): acid weights through soft_acid, an explicit composition for every bath, no water rinse.
+    """
+    v3b = bool(cfg and cfg.get("v3b"))
+    soft = soft_acid if v3b else (lambda s: s)
+    water = chem.entity(chem.post["water"], "water") if chem.post.get("water") is not None else None
+    items = chem.post_entities(row)
+    rinse = [e for e in items if e.get("rinse")
+             and not (v3b and water is not None and e["ent"]["group"] == water["group"])]
+    active = [e for e in items if not e.get("rinse")
+              and (e["ent"]["cls"].get("acid") or trace_gate(e["dose"], e["unit"], POST_D0) >= 0.5)]
+    acids = [e for e in active if e["ent"]["cls"].get("acid")]
+    others = [e for e in active if not e["ent"]["cls"].get("acid")]
+    factor = evaporation_factor(row)
+    fracs = [_acid_fraction(e, factor) for e in acids]
+    strengths = [acid_strength_v2(e["dose"], e["unit"], factor) for e in acids]
+    known_f = [f for f in fracs if f is not None]
+    known_s = [x for x in strengths if x is not None]
+    if acids and not known_f:
+        tc = acid_text_conc(row.get("post_treatment"))
+        if tc:
+            known_f = [_acid_fraction({"dose": tc[0], "unit": tc[1], "ent": acids[0]["ent"]}, factor)]
+            known_s = [acid_strength_v2(tc[0], tc[1], factor)]
+    s_fill = max(known_s) if known_s else 1.0
+    comp, weights = [], []
+    if acids and known_f:
+        f_acid = max(known_f)
+        for e, f, st in zip(acids, fracs, strengths):
+            comp.append(dict(e, dose=100.0 * (f if f is not None else f_acid), unit="volpct"))
+            weights.append(soft(st if st is not None else s_fill))
+        dosed = [e for e in others if e["dose"] is not None]
+        solvents = [e for e in others if e["dose"] is None]
+        for e in dosed:
+            comp.append(e)
+            weights.append(trace_gate(e["dose"], e["unit"], POST_D0))
+        rest = max(0.0, 1.0 - f_acid)
+        if solvents:
+            for e in solvents:
+                comp.append(dict(e, dose=100.0 * rest / len(solvents), unit="volpct"))
+                weights.append(1.0)
+        elif rest > 0 and water is not None:
+            comp.append({"ent": water, "dose": 100.0 * rest, "unit": "volpct", "rinse": False})
+            weights.append(1.0)
+    elif v3b:
+        for e in acids:                                   # acid of unknown concentration: as reported
+            comp.append(e)
+            weights.append(soft(s_fill))
+        dosed = [e for e in others if e["dose"] is not None]
+        solvents = [e for e in others if e["dose"] is None]
+        for e in dosed:
+            comp.append(e)
+            weights.append(trace_gate(e["dose"], e["unit"], POST_D0))
+        rest = max(0.0, 1.0 - sum(min(1.0, e["dose"] / 100.0) for e in dosed if e["unit"] in ("wtpct", "volpct")))
+        if solvents:                                      # a neat solvent dip is 100 vol% of that solvent
+            for e in solvents:
+                comp.append(dict(e, dose=100.0 * rest / len(solvents), unit="volpct"))
+                weights.append(1.0)
+        elif dosed and rest > 0 and water is not None:    # a dosed solute without a named solvent: aqueous
+            comp.append({"ent": water, "dose": 100.0 * rest, "unit": "volpct", "rinse": False})
+            weights.append(1.0)
+    else:
+        for e in active:
+            comp.append(e)
+            if e["ent"]["cls"].get("acid"):
+                st = acid_strength_v2(e["dose"], e["unit"], factor)
+                weights.append(st if st is not None else s_fill)
+            else:
+                weights.append(trace_gate(e["dose"], e["unit"], POST_D0))
+    out = aggregate_weighted(comp, weights, "openB_", v3b=v3b)
+    out["openB_rinse_n"] = float(len(rinse))
+    for c in ("polar_solvent", "acid", "base", "metal_salt"):
+        if any(e["ent"]["cls"].get(c) for e in rinse):
+            out["openB_rinse_cls_" + c] = 1.0
+    vals = [e["ent"]["desc"] for e in rinse if e["ent"]["desc"]]
+    for k in ("mol_wt", "mol_logp", "tpsa", "hbd"):
+        v = [d[k] for d in vals if k in d]
+        if v:
+            out["openB_rinse_mean_" + k] = float(sum(v) / len(v))
+    out["__n_B"] = float(len(comp))
+    return out
+
+
 def apply(out, keyspace, cfg):
     """Gate a transformed feature dict in place; `keyspace` = numeric openA_/openB_ keys to fill with 0."""
     ga = out.pop("__gate_A", None)
     gb = out.pop("__gate_B", None)
     acid = out.pop("__acid_strength", None)
+    if cfg.get("v3b"):
+        acid = soft_acid(acid)
     n_a = out.pop("__n_A", None)
+    n_b = out.pop("__n_B", None)
     ops = {k[len("__op_"):]: out.pop(k) for k in [k for k in out if k.startswith("__op_")]}
     post_t = out.pop("__post_T", None)
     v2 = bool(cfg.get("v2"))
@@ -357,12 +569,13 @@ def apply(out, keyspace, cfg):
             out["identity_recipe_present_name_count"] = (n_a * damp if v2 and n_a is not None else
                                                          float(out["identity_recipe_present_name_count"]) * ga)
     if gb is not None:
-        for k in keyspace["B"]:
+        mult = (1.0 if (n_b or 0.0) > 0 else 0.0) if cfg.get("v3") else gb
+        for k in keyspace["B_all" if cfg.get("v3b") else "B"]:
             out.setdefault(k, 0.0)
         for k in [k for k in out if k.startswith("openB_") and not k.startswith("openB_rinse_")]:
             v = out[k]
             if isinstance(v, (int, float)) and not _KEEP_UNGATED.search(k):
-                out[k] = float(v) * gb
+                out[k] = float(v) * mult
     if acid is not None and out.get("acid_post_present"):
         out["acid_post_present"] = float(acid)
     for key, vol in conv.items():
@@ -396,6 +609,13 @@ def apply(out, keyspace, cfg):
     if cfg.get("drop_stage_slots", True):
         for k in [k for k in out if _STAGE_SLOT.match(k)]:
             del out[k]
+    if cfg.get("v3"):
+        for k in [k for k in out if _CYCLES.search(k)]:
+            del out[k]
+        if acid is not None:                       # acid operation flags follow the acid's strength
+            for key in ("post_op_acid", "after_deposition_op_acid"):
+                if out.get(key):
+                    out[key] = float(min(float(out[key]), acid))
     cap = cfg.get("cycles_cap", 2.0)
     for k in [k for k in out if _CYCLES.search(k) and not k.startswith("has_")]:
         v = out[k]
@@ -404,19 +624,35 @@ def apply(out, keyspace, cfg):
     return out
 
 
-def keyspace(chem, slot_desc, classes):
-    """All numeric descriptor keys the open representation can write for A and B (fixed, from the table)."""
+def keyspace(chem, slot_desc, classes, v3=False):
+    """All numeric descriptor keys the open representation can write for A and B (fixed, from the table).
+
+    v3 adds the keys of acid + water compositions (slot 2) and of aggregate_weighted; "B_all" (used by v3b) also
+    holds the dose/saturation bookkeeping keys. Without v3 the key space is the v0.2.1 one."""
     from . import chemrep
-    keys = {"A": set(), "B": set()}
+    keys = {"A": set(), "B": set(), "B_all": set()}
     names = list(chem.names.items())
     posts = list(chem.post.items())
     for prefix, comp, recs in (("openA_", "A", names), ("openB_", "B", posts)):
         for name, rec in recs:
             ent = chem.entity(rec, name)
             item = {"ent": ent, "dose": 1.0, "unit": "volpct"}
-            for k, v in chemrep.aggregate([dict(item)], prefix).items():
-                if isinstance(v, (int, float)) and not _KEEP_UNGATED.search(k):
-                    keys[comp].add(k)
+            pairs = [[dict(item)]]
+            if v3 and comp == "B" and chem.post.get("water") is not None:  # acid + water compositions use slot 2
+                pairs.append([dict(item), {"ent": chem.entity(chem.post["water"], "water"), "dose": 1.0,
+                                           "unit": "volpct"}])
+            for group in pairs:
+                agg = chemrep.aggregate(group, prefix)
+                if v3 and comp == "B":
+                    agg.update(aggregate_weighted(group, [1.0] * len(group), prefix))
+                for k, v in agg.items():
+                    if isinstance(v, (int, float)):
+                        if not _KEEP_UNGATED.search(k):
+                            keys[comp].add(k)
+                        if v3 and comp == "B":
+                            keys["B_all"].add(k)
+    if v3:
+        keys["B_all"] |= keys["B"] | {"openB_dose_sum_" + u for u in set(chemrep.UNIT_GROUPS.values())}
     return {c: tuple(sorted(v)) for c, v in keys.items()}
 
 

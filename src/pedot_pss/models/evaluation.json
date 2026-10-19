@@ -1,5 +1,5 @@
 {
-  "version": "original-structure-experiment-only-MP-1012+canonical-corpus+open-chemistry-descriptors-v1-1014+physical-consistency-gate-v2-1016",
+  "version": "original-structure-experiment-only-MP-1012+canonical-corpus+open-chemistry-descriptors-v1-1014+physical-consistency-gate-v3b-1019",
   "input_version": "experiment-input-v3-text-clean-1012",
   "status": "complete_five_fold",
   "n": 6244,
@@ -9,10 +9,10 @@
     "M": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9599058177351621,
-        "rmse_log10": 0.3645724731901382,
-        "mae_log10": 0.21557469537002208,
-        "within_factor_10": 0.9777386290839206
+        "r2_log10": 0.9600221080319434,
+        "rmse_log10": 0.3640433811225931,
+        "mae_log10": 0.21828275684630338,
+        "within_factor_10": 0.9775784753363229
       },
       "polybot": {
         "n": 75,
@@ -23,19 +23,19 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.9610177382189068,
-        "rmse_log10": 0.359967877080197,
-        "mae_log10": 0.21337910869442175,
-        "within_factor_10": 0.9790889933538661
+        "r2_log10": 0.9611351245507087,
+        "rmse_log10": 0.3594254872174123,
+        "mae_log10": 0.2161200935960104,
+        "within_factor_10": 0.9789268925271519
       }
     },
     "P": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9597267823842965,
-        "rmse_log10": 0.3653855419947907,
-        "mae_log10": 0.216791000205248,
-        "within_factor_10": 0.9770980140935298
+        "r2_log10": 0.9598201197315447,
+        "rmse_log10": 0.3649618869937912,
+        "mae_log10": 0.2194980183290046,
+        "within_factor_10": 0.9766175528507367
       },
       "polybot": {
         "n": 75,
@@ -46,10 +46,10 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.9608370154614398,
-        "rmse_log10": 0.3608013223473215,
-        "mae_log10": 0.2146102008310972,
-        "within_factor_10": 0.9784405900470092
+        "r2_log10": 0.9609312325123618,
+        "rmse_log10": 0.3603670588866684,
+        "mae_log10": 0.21735012969553807,
+        "within_factor_10": 0.9779542875668666
       }
     }
   },
@@ -73,8 +73,8 @@
   "corpus_or_point_predictions_included": false,
   "representation": {
     "chemistry": "additives and post-treatment chemicals as cheminformatics descriptors (35 RDKit descriptors and functional-group counts, structure classes, dose); grade and substrate as material descriptors; no name identities, no text embedding",
-    "features": 817,
-    "dose_and_strength_gates": "v0.2.1: additive/post-treatment descriptors weighted by a smooth dose gate (all units converted to vol%), acids by a Hill function of concentration with evaporative concentration for hot-drop protocols, additive signal damped under a strong acid, operation flags read from text, temperatures held at the training support; training jitter of temperatures (+-6 C), durations (+-20%) and doses (+-10%) on the identity-masked copies"
+    "features": 796,
+    "dose_and_strength_gates": "v0.2.1: additive/post-treatment descriptors weighted by a smooth dose gate (all units converted to vol%), acids by a Hill function of concentration with evaporative concentration for hot-drop protocols, additive signal damped under a strong acid, operation flags read from text, temperatures held at the training support; training jitter of temperatures (+-6 C), durations (+-20%) and doses (+-10%) on the identity-masked copies. v0.2.2: the post-treatment bath is described by its composition (the acid weighted by its strength, which is zero below about 21 wt% H2SO4 or 3 M at room temperature, the rest of the bath as water or the stated co-solvent), so a dilute acid reads as a water dip; repeat counts are not used"
   },
   "unseen_chemistry_grouped_cv_r2_log10": {
     "additives": {
@@ -89,25 +89,26 @@
       "descriptors": 0.2504,
       "identities": 0.234
     },
-    "note": "representation study of v0.2.0 on the same folds (text-free M), before the v0.2.1 physical-consistency changes"
+    "note": "representation study of v0.2.0 on the same folds (text-free M), before the v0.2.1 and v0.2.2 physical-consistency changes"
   },
   "physical_consistency_checks": {
     "description": "one-factor-at-a-time checks against classic PEDOT:PSS literature (trace doses, acid strength, temperature steps, units, stacking, wording); pass/fail per check",
     "v0.2.0": "7/18",
     "v0.2.1": "14/18",
+    "v0.2.2": "15/18",
     "checks": {
-      "acid_concentration_series": false,
+      "acid_concentration_series": true,
       "dilute_vs_concentrated_acid": false,
       "acid_alone_magnitude": true,
       "trace_additive_no_effect": true,
       "trace_inert_coadditive": true,
       "dose_units_consistent": true,
       "stage_list_neutral": true,
-      "repeat_text_capped": false,
+      "repeat_text_capped": true,
       "acid_temperature_smooth": true,
       "preanneal_duration_flat": true,
       "pristine_magnitude": true,
-      "hot_acid_no_cliff": true,
+      "hot_acid_no_cliff": false,
       "weak_acid_words": false,
       "no_reward_beyond_support": true,
       "stage_omission_no_inflation": true,

@@ -1,5 +1,5 @@
 {
-  "status": "v0.2.1_verified",
+  "status": "v0.2.2_verified",
   "trained_release_model_present": true,
   "architecture": "physics+ML hybrid M/P (GEM + DomainTransport, acid/salt/PEO/SWCNT/DAE branches with training-support guards, thermal-clock P, Polybot two-state platform branch) on an open cheminformatics/material representation; global-kernel late layer",
   "complete_historical_M_graph_or_old_weights_unchanged": false,
@@ -12,10 +12,10 @@
     "M": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9599058177351621,
-        "rmse_log10": 0.3645724731901382,
-        "mae_log10": 0.21557469537002208,
-        "within_factor_10": 0.9777386290839206
+        "r2_log10": 0.9600221080319434,
+        "rmse_log10": 0.3640433811225931,
+        "mae_log10": 0.21828275684630338,
+        "within_factor_10": 0.9775784753363229
       },
       "polybot": {
         "n": 75,
@@ -26,19 +26,19 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.9610177382189068,
-        "rmse_log10": 0.359967877080197,
-        "mae_log10": 0.21337910869442175,
-        "within_factor_10": 0.9790889933538661
+        "r2_log10": 0.9611351245507087,
+        "rmse_log10": 0.3594254872174123,
+        "mae_log10": 0.2161200935960104,
+        "within_factor_10": 0.9789268925271519
       }
     },
     "P": {
       "all": {
         "n": 6244,
-        "r2_log10": 0.9597267823842965,
-        "rmse_log10": 0.3653855419947907,
-        "mae_log10": 0.216791000205248,
-        "within_factor_10": 0.9770980140935298
+        "r2_log10": 0.9598201197315447,
+        "rmse_log10": 0.3649618869937912,
+        "mae_log10": 0.2194980183290046,
+        "within_factor_10": 0.9766175528507367
       },
       "polybot": {
         "n": 75,
@@ -49,20 +49,20 @@
       },
       "literature": {
         "n": 6169,
-        "r2_log10": 0.9608370154614398,
-        "rmse_log10": 0.3608013223473215,
-        "mae_log10": 0.2146102008310972,
-        "within_factor_10": 0.9784405900470092
+        "r2_log10": 0.9609312325123618,
+        "rmse_log10": 0.3603670588866684,
+        "mae_log10": 0.21735012969553807,
+        "within_factor_10": 0.9779542875668666
       }
     }
   },
-  "next_required": "Publish: commit/push v0.2.1 and upload model.joblib as the v0.2.1 release asset.",
+  "next_required": "Publish: commit/push v0.2.2 and upload model.joblib as the v0.2.2 release asset.",
   "input_version": "experiment-input-v3-text-clean-1012",
   "standalone_inference_status": "passed_fresh_venv_macOS_python3.12_without_torch",
   "model_artifact": {
     "filename": "model.joblib",
-    "bytes": 219413284,
-    "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.2.1/model.joblib",
+    "bytes": 215532104,
+    "url": "https://github.com/ruiding-uchicago/PEDOT_PSS_hybrid/releases/download/v0.2.2/model.joblib",
     "model_version": "original-structure-experiment-only-MP-1012+canonical-corpus+open-chemistry-descriptors-v1-1014",
     "input_version": "experiment-input-v3-text-clean-1012",
     "default_output": "P",
@@ -85,7 +85,7 @@
     "public_predict_many_vs_private_P_batch_t1": 2.05613304160579e-13,
     "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
   },
-  "package_version": "0.2.1",
+  "package_version": "0.2.2",
   "configuration_selection": "Representation chosen among 12 full-hybrid variants on these folds (paired bootstrap 95% interval of the change vs the identity control within [-0.002, +0.003]); guards and P correction as in earlier versions; final parsing corrections and datasheet-checked material values not chosen by score",
   "polybot_final_fit_r2_log10_training_not_heldout": 0.9618895355368487,
   "inputs_v0.2.0": {
@@ -148,5 +148,26 @@
       "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
     },
     "common_sense_checks": "14/18"
+  },
+  "verification_v0.2.2": {
+    "pipeline_label": "open-v022",
+    "passed": true,
+    "parity_max_abs_log10": {
+      "M_batch_vs_private_batch_t1_all5cols": 2.282618538629322e-13,
+      "M_single_vs_private_single_t1_all5cols": 4.996003610813204e-16,
+      "M_batch_vs_private_batch_t2_all5cols": 2.282618538629322e-13,
+      "M_batch_vs_private_cached_training_vectors": 2.05613304160579e-13,
+      "M_single_vs_private_cached_training_vectors": 2.149391775674303e-13,
+      "M_batch_vs_single_public": 1.4876988529977098e-13,
+      "P_batch_vs_private_batch_t1_all5cols": 2.282618538629322e-13,
+      "P_single_vs_private_single_t1_all5cols": 4.996003610813204e-16,
+      "P_batch_vs_private_batch_t2_all5cols": 2.282618538629322e-13,
+      "P_batch_vs_private_cached_training_vectors": 2.05613304160579e-13,
+      "P_single_vs_private_cached_training_vectors": 2.149391775674303e-13,
+      "P_batch_vs_single_public": 1.4876988529977098e-13,
+      "public_predict_many_vs_private_P_batch_t1": 2.05613304160579e-13,
+      "public_predict_vs_private_P_single_t1": 4.440892098500626e-16
+    },
+    "common_sense_checks": "15/18"
   }
 }

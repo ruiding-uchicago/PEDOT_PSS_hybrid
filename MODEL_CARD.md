@@ -1,4 +1,4 @@
-# Model card: PEDOT:PSS physics + ML hybrid conductivity surrogate (v0.2.1)
+# Model card: PEDOT:PSS physics + ML hybrid conductivity surrogate (v0.2.2)
 
 **Task.** Predict the electrical conductivity (S/cm, reported as log10) of a planned PEDOT:PSS experiment from its
 material, recipe, processing and planned measurement conditions. Intended use: a surrogate for screening and
@@ -10,10 +10,12 @@ coverage, film thickness and post-fabrication characterization are rejected.
 
 **Representation.** Every chemical and material enters through descriptors, never through its name:
 - additives and post-treatment chemicals: 35 RDKit descriptors and functional-group counts, structure classes and a
-  dose saturation, aggregated per recipe (post-treatment rinses kept apart from the active treatment); descriptors
-  are weighted by a smooth dose gate (doses converted to vol% whatever the unit), acids by a Hill function of
-  concentration (K = 55 wt% or 8 mol/L, with evaporative concentration for hot-drop protocols), and the additive
-  signal is damped under a strong acid;
+  dose saturation, aggregated per recipe (solvent rinses kept apart from the active treatment); descriptors are
+  weighted by a smooth dose gate (doses converted to vol% whatever the unit), acids by a Hill function of
+  concentration (K = 55 wt% or 8 mol/L, with evaporative concentration for hot-drop protocols; zero below about
+  21 wt% H2SO4 or 3 mol/L at room temperature), the post-treatment bath is described by its composition (the acid
+  weighted by its strength, the rest as water or the stated co-solvent), and the additive signal is damped under a
+  strong acid;
 - grade and substrate: nominal material properties from supplier datasheets and handbooks;
 - deposition method, specimen geometry and measurement method: fixed categories; numbers in fixed units.
 Synonyms are rewritten to one canonical wording before training and prediction. The model contains no text
@@ -25,7 +27,7 @@ embedding or bag-of-words component.
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
 | P (default) | 0.960 | 0.961 | 0.365 |
-| M | 0.960 | 0.961 | 0.365 |
+| M | 0.960 | 0.961 | 0.364 |
 
 Final-model fit on the 75 Polybot runs: R² 0.962 (training fit, not held out). Unseen chemistry (all rows with a
 given additive held out together; representation study of v0.2.0): R² 0.48 on those rows with the descriptor
@@ -53,30 +55,34 @@ bootstrap 95% interval of its change against the identity-based control was with
   (process GEM plus a bounded SVR residual) and a dewetted state, mixed by a DMSO-gated failure probability from two
   Gaussian-process classifiers on a blade-coating regime number and the solvent-wash contact time and temperature.
 
-**Physical consistency (v0.2.1).** A one-factor-at-a-time audit against classic literature found behaviours of
-v0.2.0 that an optimizer could exploit (full effect at trace doses, weak dependence on acid concentration,
+**Physical consistency (v0.2.1, v0.2.2).** A one-factor-at-a-time audit against classic literature found behaviours
+of v0.2.0 that an optimizer could exploit (full effect at trace doses, weak dependence on acid concentration,
 temperature steps, unit- and wording-dependent predictions, an inflated additive-plus-acid bonus). v0.2.1 fixes them
 in the representation (dose gate, acid-strength gate, unit unification, operation flags read from the text,
 temperatures held at the training support) and with label-preserving training jitter of temperatures (±6 °C),
-durations (±20%) and doses (±10%); five-fold accuracy is unchanged. Of 18 literature-based common-sense checks,
-v0.2.1 passes 14 (v0.2.0: 7).
+durations (±20%) and doses (±10%). v0.2.2 describes the post-treatment bath by its composition, so a dilute acid reads
+as a water dip, and does not use repeat counts written in the text. Five-fold accuracy is unchanged. Of 18
+literature-based common-sense checks, v0.2.2 passes 15 (v0.2.1: 14; v0.2.0: 7). The three it does not pass ask for a
+larger effect of concentrated acid on a film that already contains an ionic liquid: the model gives 2.5-3x a dilute
+bath, the checks ask for 2.5-3.2x, and the 15 such films in the training data show about 2x.
 
 **Training.** All learned parameters (scalers, physical coefficients, learners, meta/fusion, the late-layer weight,
 physics support ranges, P parameters) are fitted inside the training data of each outer fold; inner three-fold
 splits create the stacking covariates. The chemistry table (PubChem structures, RDKit descriptors) and the material
 table are fixed resources that read no labels. The deployed model is fitted once on all 6,244 points.
 
-**Limitations.** Random-row folds measure interpolation within this corpus, not new-laboratory or new-chemistry
+**Scope.** Random-row folds measure interpolation within this corpus, not new-laboratory or new-chemistry
 extrapolation; molecules outside the training chemistry are an extrapolation in descriptor space. About 12% of
 additive mentions have no single structure (vague names, commercial mixtures) and enter through class flags only;
 polymer descriptors describe the repeat unit. The physics layers still recognize a few chemicals by identity
 (DMSO/EG process coordinates, acid and polar-solvent treatments, the acid/salt/PEO/SWCNT/DAE branches); a new
 molecule enters the data-driven layers through its descriptors only. Material descriptors are nominal values, not
 batch- or surface-treatment-specific. Effective physical parameters do not uniquely identify microscopic material
-properties. Dilute acids (around 20 wt%) remain about 3x above literature values and neat acids about 2x below;
-water and base dips raise pristine films as in the training data; a repeat count written in text adds up to ~1.4x;
+properties. Against the room-temperature H2SO4 series of Kim et al., 17-31 wt% acid comes out 3-4x above the
+reported values and 86-98 wt% acid about 2x below (about 2,000 S/cm, against a median of about 1,400 S/cm for
+concentrated-acid films in the training data); water and base dips raise pristine films as in the training data;
 film damage under harsh conditions is not modelled (such inputs are noted in the prediction).
 
-**Distribution.** The complete fitted state (`model.joblib`) is the asset of GitHub Release v0.2.1;
+**Distribution.** The complete fitted state (`model.joblib`) is the asset of GitHub Release v0.2.2;
 `python -m pedot_pss setup-model` installs it. No corpus or per-point evaluation data is distributed. Standalone
 inference was verified in a fresh environment with network access and reads of the development tree blocked.

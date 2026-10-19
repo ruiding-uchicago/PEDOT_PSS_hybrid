@@ -246,7 +246,11 @@ def row_descriptors(canonical_row, spec):
         else:
             out.update(chem().additive_features(canonical_row))
     if spec.modes["B"] != "O":
-        out.update(chem().post_features(canonical_row, role_split=spec.brole))
+        if spec.gate and spec.gate.get("v3"):
+            from . import gating
+            out.update(gating.post_features_v3(canonical_row, chem(), spec.gate))
+        else:
+            out.update(chem().post_features(canonical_row, role_split=spec.brole))
     if spec.gate:
         from . import gating
         out.update(gating.gate_info(canonical_row, chem(), unify=bool(spec.gate.get("unify_units")),
@@ -254,16 +258,15 @@ def row_descriptors(canonical_row, spec):
     return out
 
 
-_KEYSPACE = None
+_KEYSPACE = {}
 
 
-def gate_keyspace():
-    global _KEYSPACE
-    if _KEYSPACE is None:
+def gate_keyspace(v3=False):
+    if v3 not in _KEYSPACE:
         from . import chemrep
         from . import gating
-        _KEYSPACE = gating.keyspace(chem(), chemrep.SLOT_DESC, chemrep.CLASSES)
-    return _KEYSPACE
+        _KEYSPACE[v3] = gating.keyspace(chem(), chemrep.SLOT_DESC, chemrep.CLASSES, v3=v3)
+    return _KEYSPACE[v3]
 
 
 def transform_dict(row, desc, spec):
@@ -273,7 +276,7 @@ def transform_dict(row, desc, spec):
     out.update(desc)
     if spec.gate:
         from . import gating
-        gating.apply(out, gate_keyspace(), spec.gate)
+        gating.apply(out, gate_keyspace(bool(spec.gate.get("v3"))), spec.gate)
     return out
 
 

@@ -13,7 +13,7 @@ additives and 110 post-treatment chemicals are listed, and any other molecule ca
 input space far larger than a grid search can cover, which is what the surrogate is for.
 
 Complete fitted model; standalone inference verified in a fresh environment (macOS arm64, Python 3.12). Linux uses
-the same code path but has not been tested yet. The fitted model is the asset of GitHub Release v0.2.1.
+the same code path but has not been tested yet. The fitted model is the asset of GitHub Release v0.2.2.
 The tool returns the physics-preferred output **P**; **M** is the companion benchmark.
 
 ## Five-fold results
@@ -24,7 +24,7 @@ Pooled held-out predictions on fixed random-row five folds over the dataset of 6
 | Output | All 6,244 R² | Literature 6,169 R² | All RMSE (dex) |
 |---|---:|---:|---:|
 | P (default) | 0.960 | 0.961 | 0.365 |
-| M | 0.960 | 0.961 | 0.365 |
+| M | 0.960 | 0.961 | 0.364 |
 
 The final model reproduces the 75 Polybot runs it was trained on with R² 0.962; that is a training fit, not a
 held-out score.
@@ -93,7 +93,7 @@ of the fitted tree learners; one thread gives bitwise-repeatable predictions.
 
 ## How the inputs become numbers
 
-Every recipe becomes one numerical vector (about 950 features). Text fields reach the model only through
+Every recipe becomes one numerical vector (about 800 features). Text fields reach the model only through
 rule-based parsing:
 
 | Input | Encoding |
@@ -137,7 +137,7 @@ pedot_pss.predict(dict(experiment,
 
 Descriptors are computed with the same RDKit calls as the bundled table (`pip install '.[chem]'`). Molecules that
 are not in the training chemistry are an extrapolation in descriptor space and the result's `"notes"` say so.
-In the spin-coating example (5 vol% additive), 232 molecules outside the training data receive 227 distinct predictions between 0.3 and 621 S/cm (DMSO 559 S/cm, no additive 0.8 S/cm); glycols and polyols rank highest (median 256 S/cm), followed by sulfonic acids and polar aprotic solvents (about 190 S/cm), and sugars and sugar alcohols, carboxylic and other weak acids and simple salts rank lowest (24-77 S/cm).
+In the spin-coating example (5 vol% additive), 232 molecules outside the training data receive 227 distinct predictions between 6.7 and 445 S/cm (DMSO 530 S/cm, no additive 0.9 S/cm); glycols and polyols rank highest (median 274 S/cm), followed by polar aprotic solvents and sulfonic acids (about 190 S/cm), and sugars and sugar alcohols, carboxylic and other weak acids and simple salts rank lowest (13-71 S/cm).
 Use such predictions to rank candidates, and confirm with experiments.
 
 ## Searching the input space
@@ -165,12 +165,12 @@ molecule given by structure).
 brute-force estimate:
 
 ```text
-928 recipes (232 molecules x 4 doses) in 28.0 s = 33 recipes/s in one process
+928 recipes (232 molecules x 4 doses) in 26.5 s = 35 recipes/s in one process
 Top 10 candidates
-     479.6 S/cm  ethyl methyl sulfone at 5 vol%
-     474.7 S/cm  ethyl methyl sulfone at 10 vol%
-     453.5 S/cm  ethyl methyl sulfone at 3 vol%
-     451.7 S/cm  2-pyrrolidone at 10 vol%
+     445.3 S/cm  ethyl methyl sulfone at 5 vol%
+     422.5 S/cm  1,3-dimethyl-2-imidazolidinone at 10 vol%
+     420.4 S/cm  N-methylacetamide at 10 vol%
+     419.8 S/cm  2-pyrrolidone at 5 vol%
      ...
 ```
 
@@ -181,27 +181,34 @@ Throughput tips:
   `canonical=False` (about 4× faster; predictions are identical for inputs already in canonical wording).
 - For more throughput run several processes, about 2 GB of memory each.
 
-### Physical consistency (v0.2.1)
+### Physical consistency (v0.2.2)
 
-v0.2.1 keeps the five-fold accuracy of v0.2.0 and fixes behaviours that an optimizer could exploit far from typical
-recipes. They were found by probing the model one factor at a time against classic literature:
+v0.2.1 and v0.2.2 keep the five-fold accuracy of v0.2.0 and fix behaviours that an optimizer could exploit far from
+typical recipes. They were found by probing the model one factor at a time against classic literature:
 
 - **Doses:** an additive's effect fades smoothly to zero with its dose. Doses given in vol%, wt%, mol/L, mg/mL, ppm,
   as ratios or relative to the polymer solids are converted to one scale, and a trace co-additive changes nothing.
-- **Acid treatments:** the effect rises with acid concentration; a pH 3 bath or 0.1 wt% acid acts like a weak rinse.
-  Acid drop-cast on a hot film counts as more concentrated as the water evaporates, with no step at any temperature.
-- **Additive followed by concentrated acid:** the acid largely overrides secondary doping (about 1.2x acid alone, as
-  in the training data).
+- **Acid treatments:** the post-treatment bath is described by its composition: the acid counts with its strength
+  (none below about 21 wt% H2SO4 or 3 M at room temperature) and the rest of the bath as water or the stated
+  co-solvent. A pH 3 bath, 0.1 wt% TFA or 1 wt% H2SO4 gives about the same as a water dip (within 1.3x); from 20 to
+  98 wt% H2SO4 the prediction rises about 8x. Acid drop-cast on a hot film counts as more concentrated as the water
+  evaporates, with no step at any temperature.
+- **Additive followed by concentrated acid:** the acid largely overrides secondary doping (1.0-1.4x acid alone; about
+  1.2x in the training data).
 - **Temperatures:** predictions change smoothly; values beyond the training data (post-treatment above 200 °C,
   other steps above 230 °C) are held at the limit.
-- **Wording:** the same steps written with or without a stage list give the same prediction.
+- **Wording:** the same steps written with or without a stage list give the same prediction; repeat counts written in
+  the text ("x3", "twice", "3 cycles") are not used.
 
 Predictions carry notes when a temperature exceeds the training data or the substrate's practical limit (e.g. PET
 above ~150 °C), when nitric acid is above ~70 wt% (fuming), or when a repeat count is written in the text.
 
-Known limitations: dilute acids (around 20 wt%) remain about 3x above literature values and neat acids about 2x
-below; water and base dips raise pristine films (as reported in the training data); a repeat count written in the
-text adds up to about 1.4x; film damage under harsh conditions (fuming acid, very high temperature) is not modelled.
+Against the room-temperature H2SO4 series of Kim et al. on pristine PH1000, the model gives 220-500 S/cm at 17-31 wt%
+(reported 70-117 S/cm), within 1.5x of the reported values between 60 and 85 wt%, and about 2,000 S/cm at 86-98 wt%
+(reported 3,700-4,200 S/cm); concentrated-acid films in the training data have a median of about 1,400 S/cm. On a
+film that already contains an ionic liquid, concentrated acid gives 2.5-3x a dilute bath; the 15 such films in the
+training data show about 2x. Water and base dips raise pristine films, as reported in the training data. Film damage
+under harsh conditions (fuming acid, very high temperature) is not modelled.
 
 ## For agent developers
 
